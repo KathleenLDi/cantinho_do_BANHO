@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 package com.app.cantinho_banho.dao;
 
 import com.app.cantinho_banho.model.Cliente;
@@ -7,11 +17,28 @@ import javax.persistence.EntityManager;
 public class ClienteDAO {
 
     public Cliente buscarPorId(Long id) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         EntityManager em = JPAUtil.getEntityManager();
         try {
             Cliente clienteEncontrado = em.find(Cliente.class, id);
             return clienteEncontrado;
         } finally {
+<<<<<<< HEAD
+=======
+=======
+        // 1. Abrimos a "porta" para o banco de dados
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            // 2. Usamos o método find: (Classe que queremos, ID que buscamos)
+            Cliente clienteEncontrado = em.find(Cliente.class, id);
+            return clienteEncontrado;
+        } finally {
+            // 3. Importante: Sempre fechamos a porta para não gastar memória
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
             em.close();
         }
     }
@@ -32,7 +59,15 @@ public class ClienteDAO {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
+<<<<<<< HEAD
             em.merge(cliente);
+=======
+<<<<<<< HEAD
+            em.merge(cliente);
+=======
+            em.merge(cliente); // Aqui a mágica acontece: o Java gera o INSERT SQL
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
             em.getTransaction().commit();
         } catch (Exception e) {
             em.getTransaction().rollback();
@@ -43,6 +78,13 @@ public class ClienteDAO {
 
     public List<Cliente> listarTodos() {
         EntityManager em = JPAUtil.getEntityManager();
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+        // JPQL: Uma linguagem de consulta parecida com SQL, mas focada em Objetos
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         return em.createQuery("FROM Cliente", Cliente.class).getResultList();
     }
     

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 let lista_funcionarios = [];
 let editFuncId = null;
 
@@ -20,16 +21,24 @@ function carregarFuncionariosDoBanco() {
             });
 }
 
+=======
+let editFuncId = null;
+
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 function renderFuncionarios() {
     renderFuncsCadastro();
     renderPerformance();
 }
 
+<<<<<<< HEAD
 // Função que desenha os cards com o botão Editar e Excluir
+=======
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 function renderFuncsCadastro() {
     const el = document.getElementById('lista-funcs-cad');
     if (!el)
         return;
+<<<<<<< HEAD
 
     // Verifica a variável certa
     if (!lista_funcionarios.length) {
@@ -39,11 +48,22 @@ function renderFuncsCadastro() {
 
     // Mapeia usando a variável certa (lista_funcionarios)
     el.innerHTML = lista_funcionarios.map(f => `
+=======
+    if (!funcionarios.length) {
+        el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-users" style="color:#555"></i><p>Nenhum funcionário cadastrado</p></div>`;
+        return;
+    }
+    el.innerHTML = funcionarios.map(f => `
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
             <div class="func-cad-card">
               <div class="func-avatar">${f.nome.charAt(0).toUpperCase()}</div>
               <div class="func-cad-info">
                 <div class="func-cad-nome">${f.nome}</div>
                 <div class="func-cad-cargo">${f.cargo || '—'}</div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
               </div>
               <div style="display:flex;gap:6px">
                 <button class="btn-sm-primary" onclick="abrirModalFunc(${f.id})" title="Editar"><i class="fas fa-edit"></i></button>
@@ -57,11 +77,19 @@ function renderPerformance() {
     const el = document.getElementById('lista-performance');
     if (!el)
         return;
+<<<<<<< HEAD
     if (!lista_funcionarios.length) {
         el.innerHTML = '';
         return;
     }
     el.innerHTML = lista_funcionarios.map(f => {
+=======
+    if (!funcionarios.length) {
+        el.innerHTML = '';
+        return;
+    }
+    el.innerHTML = funcionarios.map(f => {
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         const concl = historico.filter(a => a.funcionario === f.nome && a.data?.startsWith(mes));
         const agnd = agenda.filter(a => a.funcionario === f.nome && a.data?.startsWith(mes));
         const fat = concl.reduce((s, a) => s + (a.valor || 0), 0);
@@ -111,6 +139,7 @@ function renderPerformance() {
 function abrirModalFunc(id = null) {
     editFuncId = id;
 
+<<<<<<< HEAD
     document.getElementById('modal-func-titulo').textContent = id ? 'Editar Usuário' : 'Novo Usuário';
 
     if (id) {
@@ -118,17 +147,45 @@ function abrirModalFunc(id = null) {
         if (!f)
             return;
 
+=======
+    // Atualiza o título da modal
+    document.getElementById('modal-func-titulo').textContent = id ? 'Editar Usuário' : 'Novo Usuário';
+
+    if (id) {
+        // --- MODO EDIÇÃO ---
+        // Busca o usuário na lista (que no futuro virá do Java)
+        const f = funcionarios.find(x => x.id === id);
+        if (!f)
+            return;
+
+        // Preenche os campos com os dados do banco
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         document.getElementById('nomeFuncionario').value = f.nome || '';
         document.getElementById('emailFuncionario').value = f.email || '';
         document.getElementById('cpfFuncionario').value = f.cpf || '';
         document.getElementById('rgFuncionario').value = f.rg || '';
         document.getElementById('perfilFuncionario').value = f.perfil || 'Funcionario';
+<<<<<<< HEAD
         document.getElementById('func-cargo').value = f.funcao || '';
         document.getElementById('senhaFuncionario').value = '';
 
         mostrarOcultarFuncao();
 
     } else {
+=======
+        document.getElementById('func-cargo').value = f.funcao || ''; // Usando a variável nova 'funcao'
+
+        // Dica de Segurança: Nunca preencha a senha ao editar! Deixe em branco.
+        // Se o usuário digitar algo, o Java atualiza. Se não digitar, o Java mantém a antiga.
+        document.getElementById('senhaFuncionario').value = '';
+
+        // Chama a função para esconder/mostrar o campo de Função baseado no perfil carregado
+        mostrarOcultarFuncao();
+
+    } else {
+        // --- MODO NOVO USUÁRIO ---
+        // Limpa todos os campos de texto
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         const camposLimpar = ['nomeFuncionario', 'emailFuncionario', 'senhaFuncionario', 'cpfFuncionario', 'rgFuncionario', 'func-cargo'];
         camposLimpar.forEach(campoId => {
             const elemento = document.getElementById(campoId);
@@ -136,17 +193,33 @@ function abrirModalFunc(id = null) {
                 elemento.value = '';
         });
 
+<<<<<<< HEAD
         document.getElementById('perfilFuncionario').value = 'Funcionario';
         mostrarOcultarFuncao();
     }
+=======
+        // Reseta o perfil para o padrão
+        document.getElementById('perfilFuncionario').value = 'Funcionario';
+
+        // Garante que o campo de função apareça para novos cadastros
+        mostrarOcultarFuncao();
+    }
+
+    // Mostra a modal na tela (removendo a classe que esconde)
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
     document.getElementById('modalFunc').classList.remove('hidden');
 }
 
 function fecharModalFunc() {
+<<<<<<< HEAD
+=======
+    // Esconde a modal
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
     document.getElementById('modalFunc').classList.add('hidden');
     editFuncId = null;
 }
 
+<<<<<<< HEAD
 function fecharModalInfoFunc() {
     document.getElementById('modalInfoNovoFunc').classList.add('hidden');
 
@@ -158,24 +231,38 @@ function fecharModalInfoFunc() {
     document.getElementById('info-perfil').textContent = '';
 }
 
+=======
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 function mostrarOcultarFuncao() {
     const perfilSelecionado = document.getElementById('perfilFuncionario').value;
     const divFuncao = document.getElementById('divFuncao');
     const inputFuncao = document.getElementById('func-cargo');
 
     if (perfilSelecionado === 'Funcionario') {
+<<<<<<< HEAD
         divFuncao.style.display = 'block';
         inputFuncao.required = true;
     } else {
         divFuncao.style.display = 'none';
         inputFuncao.required = false;
         inputFuncao.value = '';
+=======
+        // Se for funcionário, mostra o campo e obriga a preencher
+        divFuncao.style.display = 'block';
+        inputFuncao.required = true;
+    } else {
+        // Se for Admin, esconde o campo e tira a obrigatoriedade
+        divFuncao.style.display = 'none';
+        inputFuncao.required = false;
+        inputFuncao.value = ''; // Limpa o texto caso o usuário tenha digitado algo antes de mudar
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
     }
 }
 
 function cadastrarUsuario(event) {
     event.preventDefault();
 
+<<<<<<< HEAD
     const nomeDigitado = document.getElementById('nomeFuncionario').value;
     const emailDigitado = document.getElementById('emailFuncionario').value;
     const senhaDigitada = document.getElementById('senhaFuncionario').value;
@@ -194,17 +281,39 @@ function cadastrarUsuario(event) {
     fetch('../api/usuarios/cadastrar', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+=======
+    const formData = new URLSearchParams();
+    formData.append('user', document.getElementById('nomeFuncionario').value);
+    formData.append('nome', document.getElementById('nomeFuncionario').value);
+    formData.append('email', document.getElementById('emailFuncionario').value);
+    formData.append('senha', document.getElementById('senhaFuncionario').value);
+    formData.append('cpf', document.getElementById('cpfFuncionario').value);
+    formData.append('rg', document.getElementById('rgFuncionario').value);
+    formData.append('perfil', document.getElementById('perfilFuncionario').value);
+    formData.append('funcao', document.getElementById('func-cargo').value);
+
+    fetch('../api/usuarios/cadastrar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        },
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         body: formData
     })
             .then(response => {
                 if (response.ok) {
+<<<<<<< HEAD
                     return response.json();
+=======
+                    return response.text();
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
                 } else {
                     return response.text().then(text => {
                         throw new Error(text)
                     });
                 }
             })
+<<<<<<< HEAD
             .then(dadosRecebidos => {
                 fecharModalFunc();
 
@@ -221,6 +330,13 @@ function cadastrarUsuario(event) {
             })
             .catch(error => {
                 alert("Erro: " + error.message);
+=======
+            .then(mensagem => {
+                alert("Sucesso: " + mensagem); // Aqui vai aparecer a Matrícula gerada!
+            })
+            .catch(error => {
+                alert(error.message);
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
             });
 }
 
@@ -228,6 +344,7 @@ function cadastrarUsuario(event) {
 function excluirFunc(id) {
     if (!confirm('Excluir funcionário?'))
         return;
+<<<<<<< HEAD
 }
 
 function validarCPF(cpf) {
@@ -299,3 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
+=======
+    funcionarios = funcionarios.filter(x => x.id !== id);
+    salvarTudo();
+    renderFuncionarios();
+}
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095

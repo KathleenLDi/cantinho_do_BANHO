@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 package com.app.cantinho_banho.model;
 
 import java.io.Serializable;
@@ -18,7 +28,15 @@ public class Agendamento implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(cascade = CascadeType.ALL)
+<<<<<<< HEAD
     @JoinColumn(name = "pet_id")
+=======
+<<<<<<< HEAD
+    @JoinColumn(name = "pet_id")
+=======
+    @JoinColumn(name = "pet_id") // <--- E ESTA PARA CRIAR A COLUNA NO BANCO
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
+>>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
     private Pet pet;
     private String servico;
     private String status; // "Pendente", "Confirmado"
