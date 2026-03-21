@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
 package com.app.cantinho_banho.controller;
 
 import com.app.cantinho_banho.dao.UsuarioDAO;
@@ -55,15 +62,26 @@ public class CadastroUsuarioServlet extends HttpServlet {
             dao.salvar(novoUsuario);
 
             response.setStatus(201);
+<<<<<<< HEAD
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
+=======
+            response.setContentType("application/json"); // Avisa o JS que é um JSON
+            response.setCharacterEncoding("UTF-8");
+
+            // Monta o JSON: {"matricula": "CDB-123456"}
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
             String jsonResponse = "{\"matricula\": \"" + novoUsuario.getMatricula() + "\"}";
             response.getWriter().write(jsonResponse);
             
         } catch (Exception e) {
             response.setStatus(500);
 
+<<<<<<< HEAD
+=======
+            // CPF e E-mail são UNIQUE no banco, usuário existente, o erro cai aqui
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
             response.getWriter().write("Erro ao cadastrar usuário. Verifique se o E-mail ou CPF já existem. Detalhes: " + e.getMessage());
             e.printStackTrace();
         }

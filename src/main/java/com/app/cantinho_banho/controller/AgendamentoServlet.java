@@ -52,8 +52,11 @@ public class AgendamentoServlet extends HttpServlet {
             }
 
             Pet pet = new Pet();
+<<<<<<< HEAD
             
             
+=======
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
             pet.setNome(nomePet);
             pet.setTipo(tipoPet);
             pet.setDono(cliente);

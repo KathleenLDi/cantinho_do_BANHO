@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
 package com.app.cantinho_banho.model;
 
 import java.io.Serializable;
@@ -48,6 +55,10 @@ public class Usuario implements Serializable {
 
     @PrePersist
     public void antesDeSalvar() {
+<<<<<<< HEAD
+=======
+        // Data/Hora de criação da conta
+>>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
         this.dataCriacao = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
     }
 
