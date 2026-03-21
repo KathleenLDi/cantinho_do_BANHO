@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
->>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 package com.app.cantinho_banho.model;
 
 import java.io.Serializable;
@@ -56,21 +46,12 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private boolean ativo = true;
 
-<<<<<<< HEAD
     @Column(nullable = false)
     private boolean reset_password = true;
 
     @PrePersist
     public void antesDeSalvar() {
         // Data/Hora de criação da conta
-=======
-    @PrePersist
-    public void antesDeSalvar() {
-<<<<<<< HEAD
-=======
-        // Data/Hora de criação da conta
->>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         this.dataCriacao = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
     }
 
@@ -154,14 +135,11 @@ public class Usuario implements Serializable {
         this.ativo = ativo;
     }
 
-<<<<<<< HEAD
     public boolean isResetPassword() {
         return reset_password;
     }
 
-    public void setResetPassword( Boolean reset_password) {
+    public void setResetPassword() {
         this.reset_password = reset_password;
     }
-=======
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 }

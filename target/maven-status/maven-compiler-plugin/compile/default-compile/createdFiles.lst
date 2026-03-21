@@ -11,7 +11,4 @@ com\app\cantinho_banho\model\Usuario.class
 com\app\cantinho_banho\resources\JakartaEE8Resource.class
 com\app\cantinho_banho\model\Cliente.class
 com\app\cantinho_banho\controller\CadastroUsuarioServlet.class
-<<<<<<< HEAD
 com\app\cantinho_banho\controller\ListarUsuariosServlet.class
-=======
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095

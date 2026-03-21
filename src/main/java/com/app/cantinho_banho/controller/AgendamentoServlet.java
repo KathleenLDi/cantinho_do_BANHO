@@ -1,18 +1,8 @@
-<<<<<<< HEAD
-=======
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 package com.app.cantinho_banho.controller;
 
 import com.app.cantinho_banho.dao.AgendamentoDAO;
 import com.app.cantinho_banho.dao.ClienteDAO;
-<<<<<<< HEAD
 import com.app.cantinho_banho.dao.PetDAO;
-=======
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 import com.app.cantinho_banho.model.Agendamento;
 import com.app.cantinho_banho.model.Cliente;
 import com.app.cantinho_banho.model.Pet;
@@ -25,13 +15,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-<<<<<<< HEAD
-=======
-/**
- *
- * @author Z D K
- */
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 @WebServlet("/api/agendar")
 public class AgendamentoServlet extends HttpServlet {
 
@@ -52,11 +35,6 @@ public class AgendamentoServlet extends HttpServlet {
         try {
             LocalDate data = LocalDate.parse(dataStr);
             LocalTime hora = LocalTime.parse(horaStr);
-<<<<<<< HEAD
-=======
-
-            // Verificar Existência do Cliente no banco de dados
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
             Cliente cliente = clienteDAO.buscarPorTelefone(telefone);
             if (cliente == null) {
                 cliente = new Cliente();
@@ -64,7 +42,6 @@ public class AgendamentoServlet extends HttpServlet {
                 cliente.setTelefone(telefone);
             }
 
-<<<<<<< HEAD
             Pet pet = null;
 
             if (cliente.getId() != null) {
@@ -73,22 +50,10 @@ public class AgendamentoServlet extends HttpServlet {
             }
 
             if (pet == null) {
-                pet = new Pet();
                 pet.setNome(nomePet);
                 pet.setTipo(tipoPet);
                 pet.setDono(cliente);
             }
-=======
-            Pet pet = new Pet();
-<<<<<<< HEAD
-            
-            
-=======
->>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
-            pet.setNome(nomePet);
-            pet.setTipo(tipoPet);
-            pet.setDono(cliente);
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 
             Agendamento agendamento = new Agendamento();
             agendamento.setPet(pet);

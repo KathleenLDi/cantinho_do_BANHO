@@ -289,6 +289,7 @@
                 background:#161616;
                 border:1px solid #252525;
                 border-radius:14px;
+                min-width: 300px;
                 padding:20px;
                 display:flex;
                 flex-direction:column;
@@ -322,60 +323,43 @@
                 font-size:.75rem;
                 color:#888
             }
-<<<<<<< HEAD
+            /* O contentor agora usa Grid para dividir o espaço em 3 colunas EXATAMENTE iguais */
             .func-stats {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); /* 3 colunas de tamanhos iguais */
+                gap: 6px; /* Espaço um pouco menor entre as caixas */
                 margin-bottom: 12px;
+                width: 100%; /* Garante que respeita o limite do cartão pai */
+                box-sizing: border-box;
             }
 
             /* As caixinhas individuais */
             .func-stat {
-                flex: 1 1 auto; /* Agora adapta-se automaticamente ao conteúdo */
-                min-width: 105px; /* Aumentámos o limite para proteger palavras maiores */
-                padding: 8px;
+                padding: 8px 4px; /* Menos padding lateral para libertar espaço interno */
                 background: #111;
                 border-radius: 8px;
                 text-align: center;
                 box-sizing: border-box;
+                overflow: hidden; /* Corta o mal pela raiz: se tentar sair, fica invisível */
             }
 
             /* O número ou valor em Reais */
             .func-stat-val {
                 display: block;
-                white-space: nowrap; /* Impede que o número ou R$ seja cortado ou vá para baixo */
+                font-size: 0.85rem; /* Tamanho ajustado para caber o R$ */
+                font-weight: bold;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis; /* Se for um valor gigante, coloca "..." no final */
             }
 
             /* O texto (Concluídos, Agendados, Faturamento) */
             .func-stat-lbl {
                 display: block;
-                white-space: nowrap; /* Impede que a palavra se parta a meio */
-                font-size: 0.8rem; /* Ajuste ligeiro para caber de forma elegante */
-=======
-            .func-stats{
-                display:grid;
-                grid-template-columns:1fr 1fr 1fr;
-                gap:10px
-            }
-            .func-stat{
-                background:#111;
-                border-radius:8px;
-                padding:10px;
-                text-align:center
-            }
-            .func-stat-val{
-                font-size:1.1rem;
-                font-weight:700;
-                color:#C9A96E;
-                display:block
-            }
-            .func-stat-lbl{
-                font-size:.68rem;
-                color:#666;
-                text-transform:uppercase;
-                letter-spacing:1px
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
+                font-size: 0.65rem; /* Fonte um pouco menor para a palavra Faturamento caber */
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .func-bar-wrap{
                 display:flex;
@@ -1195,14 +1179,10 @@
         <!-- ═══ MODAL FUNCIONÁRIO ═══ -->
         <div class="modal-overlay hidden" id="modalFunc">
             <div class="modal modal-sm">
-<<<<<<< HEAD
                 <div class="modal-header">
                     <h3 id="modal-func-titulo">Novo Funcionário</h3>
                     <button onclick="fecharModalFunc()" class="btn-fechar"><i class="fas fa-times"></i></button>
                 </div>
-=======
-                <div class="modal-header"><h3 id="modal-func-titulo">Novo Funcionário</h3><button onclick="fecharModalFunc()" class="btn-fechar"><i class="fas fa-times"></i></button></div>
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
                 <div class="modal-body">
                     <div style="margin-bottom:12px">
                         <label class="form-label">Nome *</label>
@@ -1230,10 +1210,6 @@
                         </div>
                     </div>
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
                     <div style="margin-bottom:12px">
                         <label class="form-label">Perfil no Sistema *</label>
                         <select id="perfilFuncionario" class="form-ctrl" required onchange="mostrarOcultarFuncao()">
@@ -1250,7 +1226,6 @@
                 </div>
                 <div class="modal-footer">
                     <button onclick="fecharModalFunc()" class="btn-secundario">Cancelar</button>
-<<<<<<< HEAD
                     <button onclick="cadastrarUsuario(event)" class="btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
                         <i class="fas fa-save"></i> Salvar
                     </button>
@@ -1276,40 +1251,11 @@
                 </div>
                 <div class="modal-footer">
                     <button onclick="fecharModalInfoFunc()" class="btn-primary"><i class="fas fa-check"></i> Entendido, Fechar</button>
-=======
-                    <button onclick="cadastrarUsuario(event)" class="btn-primary"><i class="fas fa-save"></i> Salvar</button>
-                </div>
-            </div>
-
-            <div class="modal-overlay hidden" id="modalInfoNovoFunc" style="z-index: 9999;">
-                <div class="modal modal-sm">
-                    <div class="modal-header">
-                        <h3>✅ Funcionário Cadastrado!</h3>
-                        <button onclick="fecharModalInfoFunc()" class="btn-fechar"><i class="fas fa-times"></i></button>
-                    </div>
-                    <div class="modal-body">
-                        <div style="margin-bottom: 15px; padding: 10px; background-color: #d4edda; color: #155724; border-radius: 5px; font-size: 13px;">
-                            <strong>Atenção:</strong> Guarde estas informações e passe ao funcionário. A senha foi criptografada e não poderá ser vista novamente!
-                        </div>
-                        <p><strong>Matrícula:</strong> <span id="info-matricula" style="font-size: 1.3em; font-weight: bold; color: #0056b3;"></span></p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-                        <p><strong>Nome:</strong> <span id="info-nome"></span></p>
-                        <p><strong>Função:</strong> <span id="info-funcao"></span> (<span id="info-perfil"></span>)</p>
-                        <p><strong>E-mail (Login):</strong> <span id="info-email"></span></p>
-                        <p><strong>Senha Temp.:</strong> <span id="info-senha" style="color: #d9534f; font-weight: bold;"></span></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button onclick="fecharModalInfoFunc()" class="btn-primary"><i class="fas fa-check"></i> Entendido, Fechar</button>
-                    </div>
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
                 </div>
             </div>
         </div>
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         <!-- ═══ MODAL RELATÓRIO ═══ -->
         <div class="modal-overlay hidden" id="modalRelatorio">
             <div class="modal" style="max-width:720px;max-height:90vh;display:flex;flex-direction:column">
@@ -2845,11 +2791,7 @@
             function fecharRelatorio() {
                 document.getElementById('modalRelatorio').classList.add('hidden');
             }
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
             // R@$
 
             function gerarPDFClienteSelecionado() {
@@ -2934,11 +2876,7 @@
                 console.error('Init error:', e);
             }
         </script>
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
         <script src="js/funcionario.js"></script>
     </body>
 </html>

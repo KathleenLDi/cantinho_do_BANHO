@@ -1,16 +1,7 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-<<<<<<< HEAD
-=======
->>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
 package com.app.cantinho_banho.model;
 
 import java.util.List;
@@ -35,13 +26,7 @@ public class Cliente {
     public Cliente() {
     }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
     // Getters e Setters (Permitem que outras partes do sistema leiam e editem os dados)
->>>>>>> af320f5edf27fd4ff406a5639c2216cd2c8210cc
->>>>>>> 5fde1b1070b80895382eef94eb2a9d614827d095
     public Long getId() {
         return id;
     }
