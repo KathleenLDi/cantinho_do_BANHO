@@ -477,18 +477,21 @@
                                         <input id="nome" class="form-input" placeholder="Seu nome" required>
                                     </div>
                                 </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="input-group-custom">
+                                        <i class="fab fa-whatsapp"></i>
+                                        <input type="tel" id="tel" class="form-input" placeholder="WhatsApp" required maxlength="15" oninput="mascaraTelefone(this)">
+                                    </div>
+                                </div>
+
                                 <div class="col-md-3 col-sm-6">
                                     <div class="input-group-custom">
                                         <i class="fas fa-paw"></i>
                                         <input id="pet" class="form-input" placeholder="Nome do Pet" required>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="input-group-custom">
-                                        <i class="fab fa-whatsapp"></i>
-                                        <input id="tel" class="form-input" placeholder="WhatsApp" required oninput="detectarCliente(this.value)">
-                                    </div>
-                                </div>
+
                                 <div class="col-md-3 col-sm-6">
                                     <div class="input-group-custom">
                                         <i class="fas fa-dog"></i>
@@ -497,6 +500,30 @@
                                             <option value="Cachorro">Cachorro</option>
                                             <option value="Gato">Gato</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%;">
+
+                                    <div style="flex: 1; position: relative;">
+                                        <i class="fas fa-paw" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+
+                                        <input type="text" id="racaPet" class="form-input" placeholder="Raça do Pet" required 
+                                               style="padding-left: 35px; width: 100%; box-sizing: border-box;">
+                                    </div>
+
+                                    <div style="flex: 1; position: relative;">
+                                        <i class="fas fa-expand-arrows-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; z-index: 1;"></i>
+
+                                        <select id="portePet" class="form-input" required 
+                                                style="padding-left: 35px; width: 100%; box-sizing: border-box; appearance: none; -webkit-appearance: none;">
+                                            <option value="" disabled selected>Porte do Pet...</option>
+                                            <option value="Pequeno">Pequeno (até 10kg)</option>
+                                            <option value="Medio">Médio (11kg a 25kg)</option>
+                                            <option value="Grande">Grande (acima de 25kg)</option>
+                                        </select>
+
+                                        <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #888; font-size: 0.8em; pointer-events: none;"></i>
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
@@ -649,77 +676,6 @@
                                 }
                             }
 
-                            function enviarAgendamento(e) {
-                                e.preventDefault();
-
-                                // 1. Captura os elementos do DOM
-                                const nome = document.getElementById('nome').value.trim();
-                                const pet = document.getElementById('pet').value.trim();
-                                const tel = document.getElementById('tel').value.trim();
-                                const tipoPet = document.getElementById('tipo-pet').value;
-                                const servico = document.getElementById('servico').value;
-                                const data = document.getElementById('data').value; // Formato: YYYY-MM-DD
-                                const hora = document.getElementById('hora').value; // Formato: HH:MM
-
-                                // 2. Validação simples antes de enviar
-                                if (!nome || !pet || !tel || !tipoPet || !servico || !data || !hora) {
-                                    alert("Por favor, preencha todos os campos obrigatórios.");
-                                    return;
-                                }
-
-                                // 3. Prepara os parâmetros para o padrão que a Servlet Java entende (Form URL Encoded)
-                                const formData = new URLSearchParams();
-                                formData.append('nomeDono', nome);
-                                formData.append('telefone', tel);
-                                formData.append('nomePet', pet);
-                                formData.append('tipo', tipoPet);
-                                formData.append('servico', servico);
-                                formData.append('data', data);
-                                formData.append('hora', hora);
-
-                                // 4. O Fetch: Enviando os dados para o servidor
-                                // ATENÇÃO: Verifique se o nome do projeto no NetBeans/Tomcat é "Cantinho_banho"
-                                fetch('api/agendar', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                                    },
-                                    body: formData
-                                })
-                                        .then(response => {
-                                            if (response.ok) {
-                                                // Se o Java retornou status 200-299
-                                                return response.text();
-                                            } else {
-                                                // Se o Java deu erro (ex: 500 no banco de dados)
-                                                return response.text().then(text => {
-                                                    throw new Error(text)
-                                                });
-                                            }
-                                        })
-                                        .then(resultado => {
-                                            console.log("Sucesso do Java:", resultado);
-
-                                            // Esconde o formulário e mostra a div de sucesso (lógica que você já tinha)
-                                            document.getElementById('form-agendamento').style.display = 'none';
-                                            document.getElementById('agendamento-sucesso').style.display = 'block';
-
-                                            // Limpa o formulário para um próximo uso
-                                            // document.getElementById('form-agendamento').reset();
-                                        })
-                                        .catch(error => {
-                                            // Captura erros de rede ou erros lançados pelo 'throw' acima
-                                            console.error('Erro na requisição:', error);
-                                            alert("Falha ao salvar no MySQL: " + error.message);
-                                        });
-                            }
-
-                            function novoAgendamento() {
-                                document.getElementById('form-agendamento').style.display = 'block';
-                                document.getElementById('agendamento-sucesso').style.display = 'none';
-                                document.getElementById('form-agendamento').querySelector('form').reset();
-                            }
-
                             // Navbar + botão WA no scroll
                             window.addEventListener('scroll', () => {
                                 document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
@@ -736,5 +692,7 @@
                                 });
                             });
         </script>
+
+        <script src="js/agendamento.js"></script>
     </body>
 </html>

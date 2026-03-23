@@ -24,6 +24,8 @@ public class AgendamentoServlet extends HttpServlet {
         String nomeDono = request.getParameter("nomeDono");
         String telefone = request.getParameter("telefone");
         String nomePet = request.getParameter("nomePet");
+        String racaPet = request.getParameter("racaPet");
+        String portePet = request.getParameter("portePet");
         String tipoPet = request.getParameter("tipo");
         String servico = request.getParameter("servico");
         String dataStr = request.getParameter("data");
@@ -41,6 +43,8 @@ public class AgendamentoServlet extends HttpServlet {
                 cliente.setNome(nomeDono);
                 cliente.setTelefone(telefone);
             }
+            
+            System.out.println("Cliente: " + cliente.getNome());
 
             Pet pet = null;
 
@@ -50,8 +54,11 @@ public class AgendamentoServlet extends HttpServlet {
             }
 
             if (pet == null) {
+                pet = new Pet();
                 pet.setNome(nomePet);
                 pet.setTipo(tipoPet);
+                pet.setRaca(racaPet);
+                pet.setPorte(portePet);
                 pet.setDono(cliente);
             }
 
