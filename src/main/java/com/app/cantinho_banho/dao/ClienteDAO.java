@@ -23,11 +23,12 @@ public class ClienteDAO {
         }
     }
     
-    public Cliente buscarPorTelefone(String telefone){
+    public Cliente buscarPorTelefoneENome(String telefone, String nome){
         EntityManager em = JPAUtil.getEntityManager();
         try{
-            return em.createQuery("SELECT c FROM Cliente c WHERE c.telefone = :pTelefone",
-            Cliente.class).setParameter("pTelefone", telefone).getSingleResult();
+            return em.createQuery("SELECT c FROM Cliente c WHERE c.telefone = :pTelefone AND c.nome = :pNome",
+            Cliente.class).setParameter("pTelefone", telefone)
+                    .setParameter("pNome", nome).getSingleResult();
         }catch(Exception e){
             return null;
         } finally {

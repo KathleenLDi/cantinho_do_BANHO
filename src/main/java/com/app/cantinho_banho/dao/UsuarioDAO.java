@@ -25,33 +25,6 @@ public class UsuarioDAO {
         }
     }
 
-    public String gerarMatriculaUnica() {
-        EntityManager em = JPAUtil.getEntityManager();
-        Random random = new Random();
-        String matriculaGerada;
-        boolean repetida;
-
-        try {
-            do {
-                int numero = 100000 + random.nextInt(900000);
-                matriculaGerada = "CDB-" + numero;
-
-                Long quantidade = em.createQuery(
-                        "SELECT COUNT(u) FROM Usuario u WHERE u.matricula = :pMatricula", Long.class)
-                        .setParameter("pMatricula", matriculaGerada)
-                        .getSingleResult();
-
-                repetida = (quantidade > 0);
-
-            } while (repetida);
-
-            return matriculaGerada;
-
-        } finally {
-            em.close();
-        }
-    }
-
     public Usuario autenticar(String email, String senhaDigitada) {
         EntityManager em = JPAUtil.getEntityManager();
         try {

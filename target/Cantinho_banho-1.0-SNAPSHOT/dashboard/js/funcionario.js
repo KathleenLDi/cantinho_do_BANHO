@@ -2,7 +2,7 @@ let lista_funcionarios = [];
 let editFuncId = null;
 
 function carregarFuncionariosDoBanco() {
-    fetch('../api/usuarios/listar')
+    fetch('../api/funcionarios/listar')
             .then(response => {
                 if (!response.ok)
                     throw new Error("Erro ao buscar dados do servidor.");
@@ -28,14 +28,15 @@ function renderFuncionarios() {
 // Função que desenha os cards com o botão Editar e Excluir
 function renderFuncsCadastro() {
     const el = document.getElementById('lista-funcs-cad');
-    if (!el) return;
-    
+    if (!el)
+        return;
+
     // Verifica a variável certa
     if (!lista_funcionarios.length) {
         el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-users" style="color:#555"></i><p>Nenhum funcionário cadastrado</p></div>`;
         return;
     }
-    
+
     // Mapeia usando a variável certa (lista_funcionarios)
     el.innerHTML = lista_funcionarios.map(f => `
             <div class="func-cad-card">
@@ -128,7 +129,7 @@ function abrirModalFunc(id = null) {
         mostrarOcultarFuncao();
 
     } else {
-        const camposLimpar = ['nomeFuncionario', 'emailFuncionario', 'senhaFuncionario', 'cpfFuncionario', 'rgFuncionario', 'func-cargo'];
+        const camposLimpar = ['nomeFuncionario', 'emailFuncionario', 'senhaFuncionario', 'cpfFuncionario', 'rgFuncionario', 'func-cargo', 'salarioFunc'];
         camposLimpar.forEach(campoId => {
             const elemento = document.getElementById(campoId);
             if (elemento)
@@ -180,8 +181,9 @@ function cadastrarUsuario(event) {
     const senhaDigitada = document.getElementById('senhaFuncionario').value;
     const funcaoDigitada = document.getElementById('func-cargo').value;
     const perfilSelecionado = document.getElementById('perfilFuncionario').value;
+    const salarioDigitado = document.getElementById('salarioFunc').value;
 
-    const formData = new URLSearchParams();
+    const formData = new FormData();
     formData.append('nome', nomeDigitado);
     formData.append('email', emailDigitado);
     formData.append('senha', senhaDigitada);
@@ -189,11 +191,14 @@ function cadastrarUsuario(event) {
     formData.append('rg', document.getElementById('rgFuncionario').value);
     formData.append('perfil', perfilSelecionado);
     formData.append('funcao', funcaoDigitada);
+    formData.append('salario', salarioDigitado);
 
-    fetch('../api/usuarios/cadastrar', {
+    const urlEncodedData = new URLSearchParams(formData).toString();
+
+    fetch('../api/funcionarios/cadastrar', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
-        body: formData
+        body: urlEncodedData
     })
             .then(response => {
                 if (response.ok) {
@@ -212,6 +217,10 @@ function cadastrarUsuario(event) {
                 document.getElementById('info-email').textContent = emailDigitado;
                 document.getElementById('info-senha').textContent = senhaDigitada; // Exibe a senha original
                 document.getElementById('info-funcao').textContent = funcaoDigitada;
+                const infoSalario = document.getElementById('info-salario');
+                if (infoSalario)
+                    infoSalario.textContent = salarioDigitado;
+                
                 document.getElementById('info-perfil').textContent = perfilSelecionado;
 
                 document.getElementById('modalInfoNovoFunc').classList.remove('hidden');
@@ -254,25 +263,43 @@ function validarCPF(cpf) {
 
 function validarFormulario() {
     const btnSalvar = document.querySelector('#modalFunc .btn-primary');
+    const perfil = document.getElementById('perfilFuncionario').value;
+    
     const campos = {
         nome: document.getElementById('nomeFuncionario'),
         email: document.getElementById('emailFuncionario'),
         cpf: document.getElementById('cpfFuncionario'),
-        senha: document.getElementById('senhaFuncionario')
+        senha: document.getElementById('senhaFuncionario'),
+        cargo : document.getElementById('func-cargo'), 
+        salario : document.getElementById('salarioFunc')
     };
 
     const cpfValido = validarCPF(campos.cpf.value);
     const emailValido = campos.email.value.includes('@') && campos.email.value.length > 5;
     const nomeValido = campos.nome.value.trim().length > 3;
     const senhaValida = editFuncId ? true : campos.senha.value.length >= 4;
+    
+    // CORREÇÃO 2: Valida Função e Salário apenas se for Funcionário
+    let cargoValido = true;
+    let salarioValido = true;
+    
+    if (perfil === 'Funcionario') {
+        cargoValido = campos.cargo.value.trim().length > 2;
+        salarioValido = campos.salario.value.trim().length > 0 && Number(campos.salario.value) >= 0;
+    }
 
     aplicarEstiloValidacao(campos.cpf, cpfValido);
     aplicarEstiloValidacao(campos.email, emailValido);
     aplicarEstiloValidacao(campos.nome, nomeValido);
-    if (!editFuncId)
-        aplicarEstiloValidacao(campos.senha, senhaValida);
+    if (!editFuncId) aplicarEstiloValidacao(campos.senha, senhaValida);
+    
+    if (perfil === 'Funcionario') {
+        aplicarEstiloValidacao(campos.cargo, cargoValido);
+        aplicarEstiloValidacao(campos.salario, salarioValido);
+    }
 
-    btnSalvar.disabled = !(cpfValido && emailValido && nomeValido && senhaValida);
+    // O botão só acende se TUDO for verdadeiro
+    btnSalvar.disabled = !(cpfValido && emailValido && nomeValido && senhaValida && cargoValido && salarioValido);
     btnSalvar.style.opacity = btnSalvar.disabled ? "0.5" : "1";
     btnSalvar.style.cursor = btnSalvar.disabled ? "not-allowed" : "pointer";
 }
@@ -289,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     carregarFuncionariosDoBanco();
 
-    const ids = ['nomeFuncionario', 'emailFuncionario', 'cpfFuncionario', 'senhaFuncionario'];
+    const ids = ['nomeFuncionario', 'emailFuncionario', 'cpfFuncionario', 'senhaFuncionario', 'func-cargo', 'salarioFunc'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (el)

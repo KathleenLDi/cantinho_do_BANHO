@@ -471,6 +471,7 @@
 
                         <form onsubmit="enviarAgendamento(event)">
                             <div class="row g-3">
+
                                 <div class="col-md-3 col-sm-6">
                                     <div class="input-group-custom">
                                         <i class="fas fa-user"></i>
@@ -496,41 +497,37 @@
                                     <div class="input-group-custom">
                                         <i class="fas fa-dog"></i>
                                         <select id="tipo-pet" class="form-input" required>
-                                            <option value="">Tipo de Pet</option>
+                                            <option value="" disabled selected>Tipo de Pet...</option>
                                             <option value="Cachorro">Cachorro</option>
                                             <option value="Gato">Gato</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%;">
-
-                                    <div style="flex: 1; position: relative;">
-                                        <i class="fas fa-paw" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
-
-                                        <input type="text" id="racaPet" class="form-input" placeholder="Raça do Pet" required 
-                                               style="padding-left: 35px; width: 100%; box-sizing: border-box;">
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="input-group-custom">
+                                        <i class="fas fa-paw"></i>
+                                        <input type="text" id="racaPet" class="form-input" placeholder="Raça do Pet" required>
                                     </div>
+                                </div>
 
-                                    <div style="flex: 1; position: relative;">
-                                        <i class="fas fa-expand-arrows-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; z-index: 1;"></i>
-
-                                        <select id="portePet" class="form-input" required 
-                                                style="padding-left: 35px; width: 100%; box-sizing: border-box; appearance: none; -webkit-appearance: none;">
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="input-group-custom">
+                                        <i class="fas fa-expand-arrows-alt"></i>
+                                        <select id="portePet" class="form-input" required>
                                             <option value="" disabled selected>Porte do Pet...</option>
                                             <option value="Pequeno">Pequeno (até 10kg)</option>
                                             <option value="Medio">Médio (11kg a 25kg)</option>
                                             <option value="Grande">Grande (acima de 25kg)</option>
                                         </select>
-
-                                        <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #888; font-size: 0.8em; pointer-events: none;"></i>
                                     </div>
                                 </div>
-                                <div class="col-md-4 col-sm-6">
+
+                                <div class="col-md-6 col-sm-12">
                                     <div class="input-group-custom">
                                         <i class="fas fa-scissors"></i>
                                         <select id="servico" class="form-input" required>
-                                            <option value="">Escolha o serviço</option>
+                                            <option value="" disabled selected>Escolha o serviço...</option>
                                             <option>Banho e Tosa</option>
                                             <option>Banho</option>
                                             <option>Tosa</option>
@@ -542,24 +539,27 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
+
+                                <div class="col-md-4 col-sm-6">
                                     <div class="input-group-custom">
                                         <i class="fas fa-calendar"></i>
                                         <input id="data" type="date" class="form-input" required>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
+
+                                <div class="col-md-4 col-sm-6">
                                     <div class="input-group-custom">
                                         <i class="fas fa-clock"></i>
                                         <input id="hora" type="time" class="form-input" required>
                                     </div>
                                 </div>
 
-                                <div class="col-md-2 col-sm-12">
-                                    <button type="submit" class="btn-agendar" id="btn-agendar">
+                                <div class="col-md-4 col-sm-12">
+                                    <button type="submit" class="btn-agendar w-100" id="btn-agendar" style="height: 100%;">
                                         <i class="fa fa-paper-plane"></i> Enviar
                                     </button>
                                 </div>
+
                             </div>
                         </form>
                     </div>

@@ -1218,9 +1218,15 @@
                         </select>
                     </div>
 
-                    <div id="divFuncao" style="margin-bottom:12px; display: block;">
-                        <label class="form-label">Função na Loja *</label>
-                        <input type="text" id="func-cargo" class="form-ctrl" placeholder="Ex: Tosador, Banhista..." required/>
+                    <div id="divFuncao" class="form-row-2" style="margin-bottom:12px; display: grid;">
+                        <div>
+                            <label class="form-label">Função na Loja *</label>
+                            <input type="text" id="func-cargo" class="form-ctrl" placeholder="Ex: Tosador, Banhista..." required/>
+                        </div>
+                        <div>
+                            <label class="form-label" for="salarioFunc">Salário (R$)</label>
+                            <input type="number" id="salarioFunc" class="form-ctrl" placeholder="1500.00" step="0.01" min="0" required>
+                        </div>
                     </div>
 
                 </div>
@@ -1232,6 +1238,7 @@
                 </div>
             </div>
         </div> 
+
         <div class="modal-overlay hidden" id="modalInfoNovoFunc" style="z-index: 9999;">
             <div class="modal modal-sm">
                 <div class="modal-header">
@@ -1246,6 +1253,7 @@
                     <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
                     <p><strong>Nome:</strong> <span id="info-nome"></span></p>
                     <p><strong>Função:</strong> <span id="info-funcao"></span> (<span id="info-perfil"></span>)</p>
+                    <p><strong>Salário:</strong> <span id="info-salario"></span></p>
                     <p><strong>E-mail (Login):</strong> <span id="info-email"></span></p>
                     <p><strong>Senha Temp.:</strong> <span id="info-senha" style="color: #d9534f; font-weight: bold;"></span></p>
                 </div>

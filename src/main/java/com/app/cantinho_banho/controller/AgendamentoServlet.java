@@ -37,14 +37,12 @@ public class AgendamentoServlet extends HttpServlet {
         try {
             LocalDate data = LocalDate.parse(dataStr);
             LocalTime hora = LocalTime.parse(horaStr);
-            Cliente cliente = clienteDAO.buscarPorTelefone(telefone);
+            Cliente cliente = clienteDAO.buscarPorTelefoneENome(telefone, nomeDono);
             if (cliente == null) {
                 cliente = new Cliente();
                 cliente.setNome(nomeDono);
                 cliente.setTelefone(telefone);
             }
-            
-            System.out.println("Cliente: " + cliente.getNome());
 
             Pet pet = null;
 

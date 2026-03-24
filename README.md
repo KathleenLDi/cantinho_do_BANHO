@@ -42,4 +42,4 @@ Antes de começar, você vai precisar ter instalado:
 Este projeto não armazena senhas em texto plano. Todas as credenciais passam por um processo de Hashing antes de persistirem no banco de dados, garantindo conformidade com boas práticas de segurança.
 
 ---
-Desenvolvido por [Seu Nome] - 2026
+Desenvolvido por [Filipe Alves Santos] - 2026

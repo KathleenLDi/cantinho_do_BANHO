@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,13 +18,21 @@ public class Agendamento implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "pet_id")
     private Pet pet;
+    
+    @Column(nullable = false)
     private String servico;
+    
+    @Column(nullable = false)
     private String status; // "Pendente", "Confirmado"
-
+    
+    @Column(nullable = false)
     private LocalDate data; // YYYY-MM-DD
+    
+    @Column(nullable = false)
     private LocalTime hora; // HH:MM:SS
 
     public Agendamento() {
