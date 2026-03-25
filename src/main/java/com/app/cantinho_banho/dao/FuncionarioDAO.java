@@ -1,6 +1,7 @@
 package com.app.cantinho_banho.dao;
 
 import com.app.cantinho_banho.model.Funcionario;
+import java.util.List;
 import java.util.Random;
 import javax.persistence.EntityManager;
 
@@ -16,6 +17,20 @@ public class FuncionarioDAO {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    public void atualizar(Funcionario funcionario) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(funcionario);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
             throw e;
         } finally {
             em.close();
@@ -44,6 +59,25 @@ public class FuncionarioDAO {
 
             return matriculaGerada;
 
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Funcionario> buscarTodos() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT f FROM Funcionario f", Funcionario.class)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public Funcionario buscarPorId(Long id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.find(Funcionario.class, id);
         } finally {
             em.close();
         }

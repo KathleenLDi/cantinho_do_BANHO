@@ -27,7 +27,8 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private String senha;
 
-    private String perfil = "Funcionario";
+    @Column(nullable = false)
+    private String perfil;
 
     @Column(unique = true, nullable = false, length = 14)
     private String cpf;
@@ -41,7 +42,7 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private boolean ativo = true;
 
-    @Column(nullable = false)
+    @Column(name = "reset_password", columnDefinition = "boolean default true")
     private boolean reset_password = true;
 
     @OneToOne(mappedBy = "usuario")

@@ -24,7 +24,7 @@ public class Funcionario implements Serializable {
     private String funcao;
 
     @Column(nullable = false)
-    private Double salario;
+    private double salario;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id")
@@ -73,4 +73,5 @@ public class Funcionario implements Serializable {
         this.usuario = usuario;
     }
 
+    
 }

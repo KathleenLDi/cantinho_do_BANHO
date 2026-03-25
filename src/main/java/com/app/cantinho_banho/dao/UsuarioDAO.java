@@ -2,10 +2,7 @@ package com.app.cantinho_banho.dao;
 
 import com.app.cantinho_banho.model.Usuario;
 import java.util.List;
-import java.util.Random;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class UsuarioDAO {
 
@@ -25,34 +22,49 @@ public class UsuarioDAO {
         }
     }
 
-    public Usuario autenticar(String email, String senhaDigitada) {
+    public void atualizar(Usuario usuario) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            Usuario usuario = em.createQuery(
-                    "SELECT u FROM Usuario u WHERE u.email = :pEmail AND u.ativo = true",
-                    Usuario.class)
+            em.getTransaction().begin();
+            em.merge(usuario);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    public Usuario buscarPorEmail(String email) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT u FROM Usuario u WHERE u.email = :pEmail", Usuario.class)
                     .setParameter("pEmail", email)
                     .getSingleResult();
-
-            if (BCrypt.checkpw(senhaDigitada, usuario.getSenha())) {
-                return usuario;
-            } else {
-                return null;
-            }
-
-        } catch (NoResultException e) {
+        } catch (javax.persistence.NoResultException e) {
+            // Retorna null se não encontrar ninguém com esse e-mail
             return null;
         } finally {
             em.close();
         }
     }
 
+    // Apenas usuários com a conta Ativada
     public List<Usuario> buscarTodos() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            // Traz todos os usuários que não foram deletados (Soft Delete)
             return em.createQuery("SELECT u FROM Usuario u WHERE u.ativo = true", Usuario.class)
                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public Usuario buscarPorId(Long id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.find(Usuario.class, id);
         } finally {
             em.close();
         }

@@ -1213,6 +1213,7 @@
                     <div style="margin-bottom:12px">
                         <label class="form-label">Perfil no Sistema *</label>
                         <select id="perfilFuncionario" class="form-ctrl" required onchange="mostrarOcultarFuncao()">
+                            <option value="" disabled selected>Selecione</option>
                             <option value="Funcionario">Funcionário</option>
                             <option value="Admin">Administrador</option>
                         </select>
@@ -1225,7 +1226,24 @@
                         </div>
                         <div>
                             <label class="form-label" for="salarioFunc">Salário (R$)</label>
-                            <input type="number" id="salarioFunc" class="form-ctrl" placeholder="1500.00" step="0.01" min="0" required>
+                            <input type="text" id="salarioFunc" class="form-ctrl" placeholder="1500.00" required>
+                        </div>
+                    </div>
+
+                    <div id="divDadosEdicao" style="display: none;">
+                        <div class="form-row-2" style="margin-bottom:12px;">
+                            <div>
+                                <label class="form-label">Status do Acesso</label>
+                                <select id="statusConta" class="form-ctrl">
+                                    <option value="" disabled selected></option>
+                                    <option value="true">🟢 Conta Ativa</option>
+                                    <option value="false">🔴 Acesso Bloqueado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Data de Cadastro</label>
+                                <input type="text" id="dataCriacaoFunc" class="form-ctrl" disabled style="background-color: #0a0a0a; color: #777; border-color: #1a1a1a;" />
+                            </div>
                         </div>
                     </div>
 
@@ -1331,35 +1349,49 @@
             // ═══════════════════════════════════════════════════
             // AUTH
             // ═══════════════════════════════════════════════════
-            const logado = JSON.parse(localStorage.getItem('cb_logado'));
+            const logado = sessionStorage.getItem('nomeUsuario');
+            const perfil = sessionStorage.getItem('perfilUsuario');
+
             if (!logado) {
                 window.location.href = 'login.html';
                 throw new Error('redirect');
             }
-            document.getElementById('nomeUsuario').textContent = logado.nome;
-            const cargoLabels = {admin: 'Administrador', gerente: 'Gerente', funcionario: 'Funcionário'};
-            document.getElementById('cargoUsuario').textContent = cargoLabels[logado.cargo] || logado.cargo;
-            // Gerente não acessa pagamentos nem vê faturamento
-            if (logado.cargo === 'gerente') {
+            const elNome = document.getElementById('nomeUsuario');
+            const elCargo = document.getElementById('cargoUsuario');
+
+            if (elNome)
+                elNome.textContent = logado;
+            if (elCargo) {
+                const cargoLabels = {'Admin': 'Administrador', 'Funcionario': 'Funcionário'};
+                elCargo.textContent = cargoLabels[perfil] || perfil;
+            }
+
+            if (perfil === 'Funcionario') {
+
                 const navPag = document.querySelector('[data-page="pagamentos"]');
                 if (navPag)
                     navPag.style.display = 'none';
-                // Oculta card de faturamento do dashboard imediatamente
+
                 const style = document.createElement('style');
-                style.textContent = '#card-fat-mes{display:none!important} #dash-fat-chart-wrap{display:none!important}';
+                style.textContent = `
+        #card-fat-mes, #dash-fat-chart-wrap, .area-financeira { 
+            display: none !important; 
+        }`;
                 document.head.appendChild(style);
             }
+
             function logout() {
-                localStorage.removeItem('cb_logado');
+                // Limpa TUDO o que salvamos
+                sessionStorage.clear();
                 window.location.href = 'login.html';
             }
             // Protege navegação por URL
-            const paginaProtegida = {'pagamentos': ['admin']};
+            const paginasRestritas = {'pagamentos': ['Admin'], 'usuarios': ['Admin']};
+
             function podeAcessar(page) {
-                if (!logado)
-                    return false;
-                const restritos = paginaProtegida[page];
-                return !restritos || restritos.includes(logado.cargo);
+                const permitidos = paginasRestritas[page];
+                // Se a página não está na lista, qualquer um acessa. Se está, checa o perfil.
+                return !permitidos || permitidos.includes(perfil);
             }
 
             // ═══════════════════════════════════════════════════
@@ -2630,11 +2662,6 @@
                 if (pageCli && !pageCli.classList.contains('hidden'))
                     renderClientes();
             }
-
-            // ═══════════════════════════════════════════════════
-            // FUNCIONÁRIOS
-            // ═══════════════════════════════════════════════════
-
 
             // ═══════════════════════════════════════════════════
             // PAGAMENTOS

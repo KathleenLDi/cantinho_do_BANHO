@@ -43,7 +43,7 @@ function renderFuncsCadastro() {
               <div class="func-avatar">${f.nome.charAt(0).toUpperCase()}</div>
               <div class="func-cad-info">
                 <div class="func-cad-nome">${f.nome}</div>
-                <div class="func-cad-cargo">${f.cargo || '—'}</div>
+                <div class="func-cad-cargo">${f.perfil || '—'}</div>
               </div>
               <div style="display:flex;gap:6px">
                 <button class="btn-sm-primary" onclick="abrirModalFunc(${f.id})" title="Editar"><i class="fas fa-edit"></i></button>
@@ -112,6 +112,9 @@ function abrirModalFunc(id = null) {
     editFuncId = id;
 
     document.getElementById('modal-func-titulo').textContent = id ? 'Editar Usuário' : 'Novo Usuário';
+    const campoSenha = document.getElementById('senhaFuncionario');
+
+    const divDadosEdicao = document.getElementById('divDadosEdicao');
 
     if (id) {
         const f = lista_funcionarios.find(x => x.id === id);
@@ -122,27 +125,60 @@ function abrirModalFunc(id = null) {
         document.getElementById('emailFuncionario').value = f.email || '';
         document.getElementById('cpfFuncionario').value = f.cpf || '';
         document.getElementById('rgFuncionario').value = f.rg || '';
-        document.getElementById('perfilFuncionario').value = f.perfil || 'Funcionario';
+        document.getElementById('perfilFuncionario').value = f.perfil || 'Selecione';
         document.getElementById('func-cargo').value = f.funcao || '';
-        document.getElementById('senhaFuncionario').value = '';
+        if (f.salario) {
+            let valorString = f.salario.toFixed(2).replace('.', '');
+            document.getElementById('salarioFunc').value = valorString;
+            mascaraMoeda({target: document.getElementById('salarioFunc')});
+        } else {
+            document.getElementById('salarioFunc').value = '';
+        }
+
+        const isAtivo = (f.conta_ativa === true || f.conta_ativa === "true");
+        document.getElementById('statusConta').value = isAtivo ? "true" : "false";
+
+        if (f.data_criacao && f.data_criacao !== "") {
+            document.getElementById('dataCriacaoFunc').value = f.data_criacao;
+        } else {
+            document.getElementById('dataCriacaoFunc').value = 'Data não registrada';
+        }
+
+        if (divDadosEdicao)
+            divDadosEdicao.style.display = 'block';
+
+        campoSenha.value = '';
+        campoSenha.disabled = true;
+        campoSenha.placeholder = 'Senha (não alterável aqui)';
 
         mostrarOcultarFuncao();
+        validarFormulario();
 
     } else {
-        const camposLimpar = ['nomeFuncionario', 'emailFuncionario', 'senhaFuncionario', 'cpfFuncionario', 'rgFuncionario', 'func-cargo', 'salarioFunc'];
+        const camposLimpar = ['nomeFuncionario', 'emailFuncionario', 'senhaFuncionario', 'cpfFuncionario', 'rgFuncionario', 'perfilFuncionario', 'func-cargo', 'salarioFunc'];
         camposLimpar.forEach(campoId => {
             const elemento = document.getElementById(campoId);
             if (elemento)
                 elemento.value = '';
         });
 
-        document.getElementById('perfilFuncionario').value = 'Funcionario';
+        document.getElementById('statusConta').value = "true";
+        document.getElementById('dataCriacaoFunc').value = '';
+
+        if (divDadosEdicao)
+            divDadosEdicao.style.display = 'none';
+
+        campoSenha.disabled = false;
+        campoSenha.placeholder = 'Crie uma senha forte';
+
         mostrarOcultarFuncao();
+        validarFormulario();
     }
     document.getElementById('modalFunc').classList.remove('hidden');
 }
 
 function fecharModalFunc() {
+    document.getElementById('senhaFuncionario').value = '';
     document.getElementById('modalFunc').classList.add('hidden');
     editFuncId = null;
 }
@@ -162,6 +198,7 @@ function mostrarOcultarFuncao() {
     const perfilSelecionado = document.getElementById('perfilFuncionario').value;
     const divFuncao = document.getElementById('divFuncao');
     const inputFuncao = document.getElementById('func-cargo');
+    const inputSalario = document.getElementById('salarioFunc')
 
     if (perfilSelecionado === 'Funcionario') {
         divFuncao.style.display = 'block';
@@ -169,7 +206,7 @@ function mostrarOcultarFuncao() {
     } else {
         divFuncao.style.display = 'none';
         inputFuncao.required = false;
-        inputFuncao.value = '';
+        inputSalario.required = false;
     }
 }
 
@@ -191,11 +228,32 @@ function cadastrarUsuario(event) {
     formData.append('rg', document.getElementById('rgFuncionario').value);
     formData.append('perfil', perfilSelecionado);
     formData.append('funcao', funcaoDigitada);
-    formData.append('salario', salarioDigitado);
+
+    const statusConta = document.getElementById('statusConta');
+    if (statusConta) {
+        formData.append('ativo', statusConta.value);
+    }
+
+    let salarioFormatado = document.getElementById('salarioFunc').value;
+    if (salarioFormatado) {
+        salarioFormatado = salarioFormatado.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+    }
+    formData.append('salario', salarioFormatado);
+
+    let urlDaApi = '../api/funcionarios/cadastrar';
+
+    if (editFuncId) {
+        // Edição, envia o ID e muda a rota! (NÃO envia a senha)
+        formData.append('id', editFuncId);
+        urlDaApi = '../api/funcionarios/atualizar';
+    } else {
+        // Cadastro, envia a senha e mantém a rota de cadastrar
+        formData.append('senha', document.getElementById('senhaFuncionario').value);
+    }
 
     const urlEncodedData = new URLSearchParams(formData).toString();
 
-    fetch('../api/funcionarios/cadastrar', {
+    fetch(urlDaApi, {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
         body: urlEncodedData
@@ -212,23 +270,25 @@ function cadastrarUsuario(event) {
             .then(dadosRecebidos => {
                 fecharModalFunc();
 
-                document.getElementById('info-matricula').textContent = dadosRecebidos.matricula;
-                document.getElementById('info-nome').textContent = nomeDigitado;
-                document.getElementById('info-email').textContent = emailDigitado;
-                document.getElementById('info-senha').textContent = senhaDigitada; // Exibe a senha original
-                document.getElementById('info-funcao').textContent = funcaoDigitada;
-                const infoSalario = document.getElementById('info-salario');
-                if (infoSalario)
-                    infoSalario.textContent = salarioDigitado;
-                
-                document.getElementById('info-perfil').textContent = perfilSelecionado;
+                // Só exibe a tela de "Sucesso com Senha e Matrícula" se for um cadastro NOVO
+                if (!editFuncId && dadosRecebidos && dadosRecebidos.matricula) {
+                    document.getElementById('info-matricula').textContent = dadosRecebidos.matricula;
+                    document.getElementById('info-nome').textContent = formData.get('nome');
+                    document.getElementById('info-email').textContent = formData.get('email');
+                    document.getElementById('info-senha').textContent = formData.get('senha');
+                    document.getElementById('info-funcao').textContent = formData.get('funcao');
+                    const infoSalario = document.getElementById('info-salario');
+                    if (infoSalario)
+                        infoSalario.textContent = formData.get('salario');
+                    document.getElementById('info-perfil').textContent = formData.get('perfil');
 
-                document.getElementById('modalInfoNovoFunc').classList.remove('hidden');
+                    document.getElementById('modalInfoNovoFunc').classList.remove('hidden');
+                }
 
                 carregarFuncionariosDoBanco();
             })
             .catch(error => {
-                alert("Erro: " + error.message);
+                alert(error.message);
             });
 }
 
@@ -264,42 +324,45 @@ function validarCPF(cpf) {
 function validarFormulario() {
     const btnSalvar = document.querySelector('#modalFunc .btn-primary');
     const perfil = document.getElementById('perfilFuncionario').value;
-    
+
     const campos = {
         nome: document.getElementById('nomeFuncionario'),
         email: document.getElementById('emailFuncionario'),
         cpf: document.getElementById('cpfFuncionario'),
         senha: document.getElementById('senhaFuncionario'),
-        cargo : document.getElementById('func-cargo'), 
-        salario : document.getElementById('salarioFunc')
+        cargo: document.getElementById('func-cargo'),
+        salario: document.getElementById('salarioFunc')
     };
 
     const cpfValido = validarCPF(campos.cpf.value);
     const emailValido = campos.email.value.includes('@') && campos.email.value.length > 5;
     const nomeValido = campos.nome.value.trim().length > 3;
     const senhaValida = editFuncId ? true : campos.senha.value.length >= 4;
-    
-    // CORREÇÃO 2: Valida Função e Salário apenas se for Funcionário
+
     let cargoValido = true;
     let salarioValido = true;
-    
+
     if (perfil === 'Funcionario') {
         cargoValido = campos.cargo.value.trim().length > 2;
-        salarioValido = campos.salario.value.trim().length > 0 && Number(campos.salario.value) >= 0;
+
+        let salarioLimpo = campos.salario.value.replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
+
+        salarioValido = salarioLimpo.length > 0 && Number(salarioLimpo) >= 0;
     }
 
     aplicarEstiloValidacao(campos.cpf, cpfValido);
     aplicarEstiloValidacao(campos.email, emailValido);
     aplicarEstiloValidacao(campos.nome, nomeValido);
-    if (!editFuncId) aplicarEstiloValidacao(campos.senha, senhaValida);
-    
+    if (!editFuncId)
+        aplicarEstiloValidacao(campos.senha, senhaValida);
+
     if (perfil === 'Funcionario') {
         aplicarEstiloValidacao(campos.cargo, cargoValido);
         aplicarEstiloValidacao(campos.salario, salarioValido);
     }
 
     // O botão só acende se TUDO for verdadeiro
-    btnSalvar.disabled = !(cpfValido && emailValido && nomeValido && senhaValida && cargoValido && salarioValido);
+    btnSalvar.disabled = !(cpfValido && emailValido && nomeValido && cargoValido && salarioValido);
     btnSalvar.style.opacity = btnSalvar.disabled ? "0.5" : "1";
     btnSalvar.style.cursor = btnSalvar.disabled ? "not-allowed" : "pointer";
 }
@@ -323,5 +386,48 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('input', validarFormulario);
     });
 
+    // Mascaras
+    const inputCpf = document.getElementById('cpfFuncionario');
+    if (inputCpf)
+        inputCpf.addEventListener('input', mascaraCPF);
 
+    const inputRg = document.getElementById('rgFuncionario');
+    if (inputRg)
+        inputRg.addEventListener('input', mascaraRG);
+
+    const inputSalario = document.getElementById('salarioFunc');
+    if (inputSalario)
+        inputSalario.addEventListener('input', mascaraMoeda);
 });
+
+
+// 🎭 MÁSCARAS DE INPUT
+
+function mascaraCPF(evento) {
+    let v = evento.target.value.replace(/\D/g, ""); // Remove tudo o que não é dígito
+    v = v.replace(/(\d{3})(\d)/, "$1.$2"); // Coloca um ponto entre o 3º e o 4º dígitos
+    v = v.replace(/(\d{3})(\d)/, "$1.$2"); // Coloca um ponto entre o 6º e o 7º dígitos
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Coloca um hífen antes dos 2 últimos dígitos
+    evento.target.value = v.substring(0, 14); // Limita a 14 caracteres (000.000.000-00)
+}
+
+function mascaraRG(evento) {
+    // RG varia de estado para estado, essa máscara aceita números e a letra X no final
+    let v = evento.target.value.replace(/[^0-9xX]/g, "");
+    v = v.replace(/(\d{2})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})([0-9xX]{1})$/, "$1-$2");
+    evento.target.value = v.substring(0, 12).toUpperCase(); // Ex: 12.345.678-9 ou 12.345.678-X
+}
+
+function mascaraMoeda(evento) {
+    let v = evento.target.value.replace(/\D/g, ""); // Remove o que não é dígito
+    if (v === "") {
+        evento.target.value = "";
+        return;
+    }
+    v = (v / 100).toFixed(2) + ""; // Divide por 100 para criar os centavos
+    v = v.replace(".", ","); // Troca ponto por vírgula
+    v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Coloca ponto a cada 3 dígitos
+    evento.target.value = "R$ " + v;
+}

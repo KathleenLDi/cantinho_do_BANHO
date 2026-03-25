@@ -1,7 +1,6 @@
 package com.app.cantinho_banho.controller;
 
 import com.app.cantinho_banho.dao.FuncionarioDAO;
-import com.app.cantinho_banho.dao.UsuarioDAO;
 import com.app.cantinho_banho.model.Funcionario;
 import com.app.cantinho_banho.model.Usuario;
 import java.io.IOException;
@@ -30,14 +29,35 @@ public class CadastroFuncionarioServlet extends HttpServlet {
             String funcao = request.getParameter("funcao");
             String salario = request.getParameter("salario");
 
-            if (nome == null || email == null || senha == null || cpf == null || perfil == null || funcao == null || salario == null) {
-                response.setStatus(400);
-                response.getWriter().write("Erro: Nome, E-mail, Senha, CPF, Perfil, Função e Salário são obrigatórios.");
-                return;
+            java.util.ArrayList<String> camposFaltando = new java.util.ArrayList<>();
+
+            if (nome == null || nome.trim().isEmpty()) {
+                camposFaltando.add("Nome");
+            }
+            if (email == null || email.trim().isEmpty()) {
+                camposFaltando.add("E-mail");
+            }
+            if (cpf == null || cpf.trim().isEmpty()) {
+                camposFaltando.add("CPF");
             }
 
-            if (rg == null || rg.trim().isEmpty()) {
-                rg = null;
+            if (senha == null || senha.trim().isEmpty()) {
+                camposFaltando.add("Senha");
+            }
+
+            if (perfil.equals("Funcionario")) {
+                if (funcao == null || funcao.trim().isEmpty()) {
+                    camposFaltando.add("Função");
+                }
+                if (salario == null || salario.trim().isEmpty()) {
+                    camposFaltando.add("Salário");
+                }
+            }
+
+            if (!camposFaltando.isEmpty()) {
+                response.setStatus(400);
+                response.getWriter().write("Erro. O Java não recebeu ou recebeu vazio: " + String.join(", ", camposFaltando));
+                return;
             }
 
             Usuario novoUsuario = new Usuario();
@@ -47,10 +67,9 @@ public class CadastroFuncionarioServlet extends HttpServlet {
             novoUsuario.setSenha(senhaCriptografada);
             novoUsuario.setCpf(cpf);
             novoUsuario.setRg(rg);
+            novoUsuario.setReset_password(true);
 
-            if (perfil != null && !perfil.trim().isEmpty()) {
-                novoUsuario.setPerfil(perfil);
-            }
+            novoUsuario.setPerfil(perfil);
 
             Funcionario func = new Funcionario();
             func.setFuncao(funcao);

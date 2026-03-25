@@ -1,3 +1,4 @@
+com\app\cantinho_banho\controller\LoginServlet.class
 com\app\cantinho_banho\dao\ClienteDAO.class
 com\app\cantinho_banho\dao\UsuarioDAO.class
 com\app\cantinho_banho\controller\AgendamentoServlet.class
@@ -13,4 +14,6 @@ com\app\cantinho_banho\dao\PetDAO.class
 com\app\cantinho_banho\model\Usuario.class
 com\app\cantinho_banho\resources\JakartaEE8Resource.class
 com\app\cantinho_banho\model\Cliente.class
+com\app\cantinho_banho\controller\AtualizarFuncionarioServlet.class
 com\app\cantinho_banho\dao\FuncionarioDAO.class
+com\app\cantinho_banho\controller\ResetSenhaServlet.class
