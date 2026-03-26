@@ -18,22 +18,38 @@ public class Agendamento implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "pet_id")
     private Pet pet;
-    
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "funcionario_id")
+    private Funcionario funcionario;
+
     @Column(nullable = false)
     private String servico;
-    
+
     @Column(nullable = false)
     private String status; // "Pendente", "Confirmado"
-    
+
     @Column(nullable = false)
     private LocalDate data; // YYYY-MM-DD
-    
+
     @Column(nullable = false)
     private LocalTime hora; // HH:MM:SS
+
+    private String statusPagamento; // "Pendente", "Confirmado"
+
+    private double valor;
+
+    private String formPagamento;
+
+    private LocalTime entrada_pet; // HH:MM:SS
+
+    private LocalTime saida_pet; // HH:MM:SS
+
+    private String obs;
 
     public Agendamento() {
     }
@@ -95,6 +111,62 @@ public class Agendamento implements Serializable {
 
     public void setHora(LocalTime hora) {
         this.hora = hora;
+    }
+
+    public Funcionario getFuncionario() {
+        return funcionario;
+    }
+
+    public void setFuncionario(Funcionario funcionario) {
+        this.funcionario = funcionario;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+
+    public void setValor(double valor) {
+        this.valor = valor;
+    }
+
+    public String getFormPagamento() {
+        return formPagamento;
+    }
+
+    public void setFormPagamento(String formPagamento) {
+        this.formPagamento = formPagamento;
+    }
+
+    public LocalTime getEntrada_pet() {
+        return entrada_pet;
+    }
+
+    public void setEntrada_pet(LocalTime entrada_pet) {
+        this.entrada_pet = entrada_pet;
+    }
+
+    public LocalTime getSaida_pet() {
+        return saida_pet;
+    }
+
+    public void setSaida_pet(LocalTime saida_pet) {
+        this.saida_pet = saida_pet;
+    }
+
+    public String getObs() {
+        return obs;
+    }
+
+    public void setObs(String obs) {
+        this.obs = obs;
+    }
+
+    public String getStatusPagamento() {
+        return statusPagamento;
+    }
+
+    public void setStatusPagamento(String statusPagamento) {
+        this.statusPagamento = statusPagamento;
     }
 
 }

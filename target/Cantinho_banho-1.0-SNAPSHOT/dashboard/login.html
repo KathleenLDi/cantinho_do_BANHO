@@ -70,11 +70,15 @@
                 if (formLogin) {
                     formLogin.addEventListener('submit', async function (event) {
                         event.preventDefault();
+                        const btnSubmit = formLogin.querySelector('button[type="submit"]');
+                        const originalContent = btnSubmit.innerHTML;
 
                         const email = document.getElementById('email').value;
                         const senha = document.getElementById('senha').value;
                         const divErro = document.getElementById('mensagemErro');
 
+                        btnSubmit.disabled = true;
+                        btnSubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Autenticando...';
                         divErro.style.display = 'none';
                         divErro.textContent = '';
 
@@ -102,7 +106,8 @@
 
                                     // Muda o subtítulo da caixinha
                                     document.querySelector('.login-sub').textContent = 'Defina sua Nova Senha';
-
+                                    btnSubmit.disabled = false;
+                                    btnSubmit.innerHTML = originalContent;
 
                                 } else {
                                     // Sucesso
@@ -113,11 +118,15 @@
                                 }
                             } else {
                                 mostrarErro(dados.erro || "Erro ao realizar login", 'mensagemErro');
+                                btnSubmit.disabled = false;
+                                btnSubmit.innerHTML = originalContent;
                             }
 
                         } catch (erro) {
                             console.error("Erro na requisição:", erro);
                             mostrarErro("Erro de conexão com o servidor. Tente novamente.");
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerHTML = originalContent;
                         }
                     });
                 }
@@ -129,6 +138,12 @@
                         const novaSenha = document.getElementById('novaSenha').value;
                         const confirmaSenha = document.getElementById('confirmaSenha').value;
                         const erroReset = document.getElementById('erro-reset');
+
+                        const btnReset = formReset.querySelector('button[type="submit"]');
+                        const originalContent = btnReset.innerHTML;
+
+                        btnReset.disabled = true;
+                        btnReset.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Salvando Nova Senha...';
 
                         erroReset.style.display = 'none';
 
@@ -160,10 +175,14 @@
                                 window.location.href = 'admin-dashboard.html';
                             } else {
                                 mostrarErro(dados.erro, 'erro-reset');
+                                btnReset.disabled = false;
+                                btnReset.innerHTML = originalContent;
                             }
                         } catch (erro) {
                             console.error("Erro no reset:", erro);
                             mostrarErro("Erro ao comunicar com o servidor.", 'erro-reset');
+                            btnReset.disabled = false;
+                            btnReset.innerHTML = originalContent;
                         }
                     });
                 }

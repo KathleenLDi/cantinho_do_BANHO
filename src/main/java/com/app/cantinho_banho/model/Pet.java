@@ -15,7 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class Pet implements Serializable{
+public class Pet implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +31,7 @@ public class Pet implements Serializable{
     private String porte;
     @Column(nullable = false)
     private String tipo;
+    private String obs;
 
     public Pet() {
     }
@@ -82,4 +83,13 @@ public class Pet implements Serializable{
     public void setTipo(String tipo) {
         this.tipo = tipo;
     }
+
+    public String getObs() {
+        return obs;
+    }
+
+    public void setObs(String obs) {
+        this.obs = obs;
+    }
+
 }

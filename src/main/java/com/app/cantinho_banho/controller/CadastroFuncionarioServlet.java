@@ -86,7 +86,6 @@ public class CadastroFuncionarioServlet extends HttpServlet {
             func.setMatricula(matriculaSegura);
 
             func.setUsuario(novoUsuario);
-            novoUsuario.setFuncionario(func);
 
             funcDAO.salvar(func);
 

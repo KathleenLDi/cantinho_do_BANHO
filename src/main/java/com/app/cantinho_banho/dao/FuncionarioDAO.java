@@ -4,6 +4,7 @@ import com.app.cantinho_banho.model.Funcionario;
 import java.util.List;
 import java.util.Random;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 
 public class FuncionarioDAO {
 
@@ -69,6 +70,22 @@ public class FuncionarioDAO {
         try {
             return em.createQuery("SELECT f FROM Funcionario f", Funcionario.class)
                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public Funcionario buscarPorNome(String nome) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql = "SELECT f FROM Funcionario f WHERE f.usuario.nome = :nomeDaTela";
+
+            return em.createQuery(jpql, Funcionario.class)
+                    .setParameter("nomeDaTela", nome)
+                    .getSingleResult(); 
+
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }

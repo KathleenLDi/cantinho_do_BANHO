@@ -1307,43 +1307,21 @@
                 localStorage.setItem(k, JSON.stringify(v));
             }
 
-            let novos = loadData('cb_novos');
-            let agenda = loadData('cb_agenda');
-            let pendentes = loadData('cb_pend');
-            let retirada = loadData('cb_retirada');
-            let historico = loadData('cb_historico');
-            let clientes = loadData('cb_clientes');   // [{id,nome,tel,pets,obs,pacoteId,valorPacote,validadePacote,servicos:[{id,nome,usado,dataUso}]}]
-            let pacotes = loadData('cb_pacotes');    // [{id,nome,desc,servicos:['Banho','Tosa',...]}]
-            let funcionarios = loadData('cb_funcionarios'); // [{id,nome,cargo,wpp}]
-
-            // Migração dados antigos
-            (function () {
-                const antigos = JSON.parse(localStorage.getItem('cb_atendimentos') || '[]');
-                if (antigos.length > 0 && historico.length === 0) {
-                    historico = antigos.map(a => ({...a, status: 'concluido', obsInternas: ''}));
-                    saveData('cb_historico', historico);
-                }
-                // Funcionários padrão se vazio
-                if (funcionarios.length === 0) {
-                    funcionarios = [
-                        {id: 1, nome: 'Administrador', cargo: 'Administrador', wpp: ''},
-                        {id: 2, nome: 'Ana Paula', cargo: 'Tosadora', wpp: ''},
-                        {id: 3, nome: 'Hegly', cargo: 'Banhista', wpp: ''}
-                    ];
-                    saveData('cb_funcionarios', funcionarios);
-                }
-            })();
+            let novos = [];
+            let agenda = [];
+            let pendentes = [];
+            let retirada = [];
+            let historico = [];
+            let clientes = [];
+            let pacotes = [];
+            let funcionarios = [];
 
             function salvarTudo() {
-                saveData('cb_novos', novos);
-                saveData('cb_agenda', agenda);
-                saveData('cb_pend', pendentes);
-                saveData('cb_retirada', retirada);
-                saveData('cb_historico', historico);
-                saveData('cb_clientes', clientes);
-                saveData('cb_pacotes', pacotes);
-                saveData('cb_funcionarios', funcionarios);
-                atualizarBadges();
+                // Por enquanto, apenas atualiza os números na tela
+                if (typeof atualizarBadges === 'function') {
+                    atualizarBadges();
+                }
+                console.log("Referência local atualizada (Memória)");
             }
 
             // ═══════════════════════════════════════════════════
@@ -1367,11 +1345,13 @@
             }
 
             if (perfil === 'Funcionario') {
-
                 const navPag = document.querySelector('[data-page="pagamentos"]');
+                const navFuc = document.querySelector('[data-page="funcionarios"]');
+
                 if (navPag)
                     navPag.style.display = 'none';
-
+                if (navFuc)
+                    navFuc.style.display = 'none';
                 const style = document.createElement('style');
                 style.textContent = `
         #card-fat-mes, #dash-fat-chart-wrap, .area-financeira { 
@@ -1386,7 +1366,7 @@
                 window.location.href = 'login.html';
             }
             // Protege navegação por URL
-            const paginasRestritas = {'pagamentos': ['Admin'], 'usuarios': ['Admin']};
+            const paginasRestritas = {'pagamentos': ['Admin'], 'funcionarios': ['Admin'], 'usuarios': ['Admin']};
 
             function podeAcessar(page) {
                 const permitidos = paginasRestritas[page];
@@ -1418,6 +1398,14 @@
                 if (!podeAcessar(page)) {
                     alert('Acesso restrito.');
                     return;
+                }
+
+                if (page === 'agenda' || page === 'dashboard') {
+                    carregarAgendaDoBanco();
+                }
+
+                if (page === 'funcionarios') {
+                    carregarFuncionariosDoBanco();
                 }
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
@@ -2055,72 +2043,6 @@
             // ═══════════════════════════════════════════════════
             // AGENDA CONFIRMADA
             // ═══════════════════════════════════════════════════
-            function renderAgenda() {
-                populateFuncSelects();
-                const busca = (document.getElementById('busca-agenda')?.value || '').toLowerCase();
-                const filData = document.getElementById('filtro-data-agenda')?.value || '';
-                const filFunc = document.getElementById('filtro-func-agenda')?.value || '';
-                const lista = agenda.filter(a => {
-                    return (a.pet + a.dono + a.servico).toLowerCase().includes(busca) && (filData ? a.data === filData : true) && (filFunc ? a.funcionario === filFunc : true);
-                }).sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora));
-                const el = document.getElementById('lista-agenda');
-                if (!el)
-                    return;
-                if (!lista.length) {
-                    el.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-check" style="color:#5ac75a"></i><p>Nenhum agendamento confirmado</p></div>`;
-                    return;
-                }
-                const funcOpts = `<option value="">— Selecionar —</option>` + funcionarios.map(f => `<option>${f.nome}</option>`).join('');
-                el.innerHTML = lista.map(a => `
-            <div class="agenda-card">
-              <div class="ac-header">
-                <div>
-                  <div class="ac-pet"><i class="fas fa-paw" style="color:#C9A96E;margin-right:6px;font-size:.8rem"></i>${a.pet} <small style="color:#888;font-weight:400">(${a.tipo})</small></div>
-                  <div class="ac-dono">${a.dono} · <a href="https://wa.me/55${cleanTel(a.contato)}" target="_blank" style="color:#25d366"><i class="fab fa-whatsapp"></i> ${a.contato}</a></div>
-                </div>
-                <div style="text-align:right">
-                  <span class="badge-confirmado">Confirmado</span>
-                  <div style="font-size:.75rem;color:#C9A96E;margin-top:4px">${fd(a.data)} às ${a.hora}</div>
-                </div>
-              </div>
-              <div style="margin-bottom:10px"><span class="badge badge-amarelo">${a.servico}</span></div>
-              <div class="ac-grid">
-                <div class="ag-field"><label>Funcionário</label>
-                  <select onchange="saveCampo(${a.id},'funcionario',this.value,'agenda')">${funcOpts.replace(`>${a.funcionario}<`, ` selected>${a.funcionario}<`)}</select>
-                </div>
-                <div class="ag-field"><label>Valor Cobrado (R$)</label>
-                  <input type="number" step="0.01" value="${a.valor || ''}" placeholder="0,00" onchange="saveCampo(${a.id},'valor',parseFloat(this.value)||0,'agenda')"/>
-                </div>
-                <div class="ag-field"><label>Forma de Pagamento</label>
-                  <select onchange="saveCampo(${a.id},'formaPag',this.value,'agenda')">
-                    <option value="" ${!a.formaPag ? 'selected' : ''}>— Selecionar —</option>
-                    ${['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito'].map(p => `<option ${a.formaPag === p ? 'selected' : ''}>${p}</option>`).join('')}
-                  </select>
-                </div>
-                <div class="ag-field"><label>Status Pagamento</label>
-                  <select onchange="saveCampo(${a.id},'statusPag',this.value,'agenda')">
-                    <option ${(a.statusPag || 'Pendente') === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                    <option ${a.statusPag === 'Pago' ? 'selected' : ''}>Pago</option>
-                  </select>
-                </div>
-                <div class="ag-field"><label>Entrada do Pet</label>
-                  <input type="time" value="${a.horarioEntrada || ''}" onchange="saveCampo(${a.id},'horarioEntrada',this.value,'agenda')"/>
-                </div>
-                <div class="ag-field"><label>Saída do Pet</label>
-                  <input type="time" value="${a.horarioSaida || ''}" onchange="saveCampo(${a.id},'horarioSaida',this.value,'agenda')"/>
-                </div>
-              </div>
-              <div class="ac-obs" style="margin-bottom:10px">
-                <label>Observações Internas</label>
-                <textarea rows="2" placeholder="Notas, produtos..." onchange="saveCampo(${a.id},'obsInternas',this.value,'agenda')">${a.obsInternas || ''}</textarea>
-              </div>
-              ${a.obs ? `<div style="font-size:.78rem;color:#888;margin-bottom:10px"><i class="fas fa-sticky-note" style="color:#C9A96E;margin-right:5px"></i>${a.obs}</div>` : ''}
-              <div class="ac-footer">
-                <button class="btn-save-agenda" onclick="salvarAgendaManual(${a.id},this)"><i class="fas fa-save"></i> Salvar</button>
-                <button class="btn-concluir" onclick="concluirAtendimento(${a.id})"><i class="fas fa-check-double"></i> Serviço Concluído</button>
-              </div>
-            </div>`).join('');
-            }
 
             function saveCampo(id, campo, valor, lista) {
                 const arr = lista === 'agenda' ? agenda : historico;
@@ -2129,133 +2051,6 @@
                     return;
                 arr[idx][campo] = valor;
                 salvarTudo();
-            }
-            function salvarAgendaManual(id, btn) {
-                salvarTudo();
-                const b = btn.closest?.('button') || btn;
-                const orig = b.innerHTML;
-                b.innerHTML = '<i class="fas fa-check"></i> Salvo!';
-                setTimeout(() => b.innerHTML = orig, 1500);
-            }
-            function concluirAtendimento(id) {
-                const idx = agenda.findIndex(x => x.id === id);
-                if (idx === -1)
-                    return;
-                const item = agenda[idx];
-                retirada.unshift({...item, status: 'aguardando_retirada', concluidoEm: new Date().toISOString()});
-                agenda.splice(idx, 1);
-                salvarTudo();
-                renderRetirada();
-                renderDashboard();
-                atualizarBadges();
-                navigateTo('retirada');
-                const msg = `🐾 *Cantinho do Banho*
-
-        Olá, *${item.dono}*! O *${item.pet}* está prontinho e aguardando para ser buscado! 😊🐾
-
-        Venha buscar quando puder! 🏠`;
-                setTimeout(() => openWA(item.contato, msg), 500);
-            }
-
-            function retiradaFeita(id) {
-                const idx = retirada.findIndex(x => x.id === id);
-                if (idx === -1)
-                    return;
-                const item = retirada[idx];
-                historico.unshift({...item, status: 'concluido', retiradoEm: new Date().toISOString()});
-                retirada.splice(idx, 1);
-                salvarTudo();
-                renderRetirada();
-                renderDashboard();
-                atualizarBadges();
-            }
-
-            function renderRetirada() {
-                const el = document.getElementById('lista-retirada');
-                if (!el)
-                    return;
-                if (!retirada.length) {
-                    el.innerHTML = `<div class="empty-state"><i class="fas fa-dog" style="color:#C9A96E55"></i><p>Nenhum pet aguardando retirada</p></div>`;
-                    return;
-                }
-                el.innerHTML = retirada.map(a => `
-            <div class="agenda-card" style="border-color:#C9A96E44">
-              <div class="ac-header">
-                <div>
-                  <div class="ac-pet"><i class="fas fa-paw" style="color:#C9A96E;margin-right:6px;font-size:.8rem"></i>${a.pet} <small style="color:#888">(${a.tipo})</small></div>
-                  <div class="ac-dono">${a.dono} · <a href="https://wa.me/55${cleanTel(a.contato)}" target="_blank" style="color:#25d366"><i class="fab fa-whatsapp"></i> ${a.contato}</a></div>
-                </div>
-                <div style="text-align:right">
-                  <span style="background:#C9A96E22;color:#C9A96E;border:1px solid #C9A96E44;border-radius:20px;padding:3px 12px;font-size:.72rem;font-weight:600">Aguardando Retirada</span>
-                  <div style="font-size:.72rem;color:#888;margin-top:4px"><i class="fas fa-clock" style="margin-right:3px"></i>Concluído: ${new Date(a.concluidoEm).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>
-                </div>
-              </div>
-              <div style="margin-bottom:14px">
-                <span class="badge badge-amarelo">${a.servico}</span>
-                ${a.funcionario ? `<span style="font-size:.75rem;color:#666;margin-left:8px"><i class="fas fa-user" style="margin-right:3px"></i>${a.funcionario}</span>` : ''}
-              </div>
-              <button onclick="retiradaFeita(${a.id})" style="width:100%;background:#1a3a1a;border:1px solid #2d6a2d;color:#5ac75a;border-radius:8px;padding:10px;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s">
-                <i class="fas fa-check-circle"></i> Retirada Feita ✓
-              </button>
-            </div>`).join('');
-            }
-
-            // ═══════════════════════════════════════════════════
-            // PENDENTES
-            // ═══════════════════════════════════════════════════
-            function renderPendentes() {
-                const busca = (document.getElementById('busca-pend')?.value || '').toLowerCase();
-                const lista = pendentes.filter(a => (a.pet + a.dono + a.servico).toLowerCase().includes(busca));
-                const el = document.getElementById('lista-pendentes');
-                if (!el)
-                    return;
-                if (!lista.length) {
-                    el.innerHTML = `<div class="empty-state"><i class="fas fa-clock" style="color:#555"></i><p>Nenhum pedido pendente</p></div>`;
-                    return;
-                }
-                el.innerHTML = lista.map(a => `
-            <div class="pendente-card">
-              <div class="pc-header">
-                <div><div class="pc-pet"><i class="fas fa-paw" style="color:#c77a7a;margin-right:6px;font-size:.8rem"></i>${a.pet} <small>(${a.tipo})</small></div><div class="pc-dono">${a.dono} · ${a.contato}</div></div>
-                <span class="badge-pend-red">Pendente</span>
-              </div>
-              <div class="pc-info">
-                <span><i class="fas fa-scissors"></i> ${a.servico}</span>
-                <span><i class="fas fa-calendar"></i> Data original: ${fd(a.data)} às ${a.hora}</span>
-                ${a.obs ? `<span><i class="fas fa-sticky-note"></i> ${a.obs}</span>` : ''}
-              </div>
-              <div class="section-lbl">Reagendar</div>
-              <div class="pc-reagen">
-                <div class="field"><label>Nova Data</label><input type="date" id="pnd-data-${a.id}" value="${a.data}"/></div>
-                <div class="field"><label>Nova Hora</label><input type="time" id="pnd-hora-${a.id}" value="${a.hora}"/></div>
-              </div>
-              <div class="pc-actions">
-                <button class="btn-confirmar-pend" onclick="confirmarPendente(${a.id})"><i class="fas fa-check"></i> Confirmar & WhatsApp</button>
-                <button class="btn-wpp-pend" onclick="openWA('${a.contato}','Olá ${a.dono}! Temos horários para ${a.pet}. Qual a melhor data? 🐾')"><i class="fab fa-whatsapp"></i> Contato</button>
-                <button class="btn-excluir-pend" onclick="excluirPendente(${a.id})"><i class="fas fa-trash"></i></button>
-              </div>
-            </div>`).join('');
-            }
-            function confirmarPendente(id) {
-                const idx = pendentes.findIndex(x => x.id === id);
-                if (idx === -1)
-                    return;
-                const novaData = document.getElementById(`pnd-data-${id}`)?.value;
-                const novaHora = document.getElementById(`pnd-hora-${id}`)?.value;
-                const item = {...pendentes[idx], data: novaData || pendentes[idx].data, hora: novaHora || pendentes[idx].hora, status: 'confirmado', funcionario: '', valor: 0, formaPag: '', statusPag: 'Pendente', horarioEntrada: '', horarioSaida: '', obsInternas: ''};
-                agenda.unshift(item);
-                pendentes.splice(idx, 1);
-                salvarTudo();
-                openWA(item.contato, msgAceitar(item));
-                renderPendentes();
-                renderDashboard();
-            }
-            function excluirPendente(id) {
-                if (!confirm('Remover?'))
-                    return;
-                pendentes = pendentes.filter(x => x.id !== id);
-                salvarTudo();
-                renderPendentes();
             }
 
             // ═══════════════════════════════════════════════════
@@ -2913,5 +2708,6 @@
         </script>
 
         <script src="js/funcionario.js"></script>
+        <script src="js/agendamento.js"></script>
     </body>
 </html>

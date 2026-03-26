@@ -2,6 +2,22 @@ let lista_funcionarios = [];
 let editFuncId = null;
 
 function carregarFuncionariosDoBanco() {
+    const elLista = document.getElementById('lista-funcs-cad');
+    const elPerf = document.getElementById('lista-performance');
+
+    // 1. ATIVAR O AGUARDE (Antes do fetch)
+    const loadingHTML = `
+        <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: #C9A96E; margin-bottom: 10px;"></i>
+            <p style="color: #888; font-family: 'Cormorant Garamond', serif;">Consultando banco de dados...</p>
+        </div>
+    `;
+
+    if (elLista)
+        elLista.innerHTML = loadingHTML;
+    if (elPerf)
+        elPerf.innerHTML = loadingHTML;
+    // 2. INICIAR A BUSCA
     fetch('../api/funcionarios/listar')
             .then(response => {
                 if (!response.ok)
@@ -9,14 +25,21 @@ function carregarFuncionariosDoBanco() {
                 return response.json();
             })
             .then(dadosRecebidos => {
+                // Pequeno delay artificial (opcional) para o usuário notar o capricho no loading
+                // setTimeout(() => { 
                 lista_funcionarios = dadosRecebidos;
-                renderFuncionarios();
+                renderFuncionarios(); // Isso automaticamente substitui o loading pelos cards
+                // }, 500);
             })
             .catch(error => {
                 console.error("Erro:", error);
-                const el = document.getElementById('lista-funcs-cad');
-                if (el)
-                    el.innerHTML = `<div class="empty-state" style="color:#dc3545"><i class="fas fa-exclamation-triangle"></i><p>Erro de conexão com o banco de dados.</p></div>`;
+                if (elLista) {
+                    elLista.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1; color:#dc3545">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Erro de conexão com o banco de dados. Verifique o servidor.</p>
+                    </div>`;
+                }
             });
 }
 
@@ -25,13 +48,11 @@ function renderFuncionarios() {
     renderPerformance();
 }
 
-// Função que desenha os cards com o botão Editar e Excluir
 function renderFuncsCadastro() {
     const el = document.getElementById('lista-funcs-cad');
     if (!el)
         return;
 
-    // Verifica a variável certa
     if (!lista_funcionarios.length) {
         el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-users" style="color:#555"></i><p>Nenhum funcionário cadastrado</p></div>`;
         return;
@@ -375,10 +396,11 @@ function aplicarEstiloValidacao(elemento, v) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-
+document.querySelector('[data-page="funcionarios"]').addEventListener('click', () => {
     carregarFuncionariosDoBanco();
+});
 
+document.addEventListener('DOMContentLoaded', () => {
     const ids = ['nomeFuncionario', 'emailFuncionario', 'cpfFuncionario', 'senhaFuncionario', 'func-cargo', 'salarioFunc'];
     ids.forEach(id => {
         const el = document.getElementById(id);
