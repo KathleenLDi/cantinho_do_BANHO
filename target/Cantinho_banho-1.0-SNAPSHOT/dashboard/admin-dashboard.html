@@ -830,8 +830,8 @@
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 <a href="#" class="nav-item" data-page="novos"><i class="fas fa-bell"></i> Novos Pedidos <span class="nav-badge" id="badge-novos">0</span></a>
-                <a href="#" class="nav-item" data-page="agenda"><i class="fas fa-calendar-check"></i> Agenda Confirmada</a>
                 <a href="#" class="nav-item" data-page="pendentes"><i class="fas fa-clock"></i> Pendentes <span class="nav-badge" id="badge-pend">0</span></a>
+                <a href="#" class="nav-item" data-page="agenda"><i class="fas fa-calendar-check"></i> Agenda Confirmada</a>
                 <a href="#" class="nav-item" data-page="retirada"><i class="fas fa-dog"></i> Retirada do Pet <span class="nav-badge" id="badge-retirada">0</span></a>
                 <a href="#" class="nav-item" data-page="clientes"><i class="fas fa-star"></i> Clientes Cadastrados</a>
                 <a href="#" class="nav-item" data-page="funcionarios"><i class="fas fa-users"></i> Funcionários</a>
@@ -852,6 +852,9 @@
             <header class="topbar">
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <h2 class="page-title" id="pageTitle">Dashboard</h2>
+                <div class="header-relogio">
+                    <i id="icone-sync" class="fas fa-sync-alt" style="margin-left: 8px; color: #ccc; font-size: 0.9rem; transition: color 0.3s;"></i>
+                </div>
                 <div class="topbar-right"><span class="data-hoje" id="dataHoje"></span></div>
             </header>
 
@@ -1250,7 +1253,7 @@
                 </div>
                 <div class="modal-footer">
                     <button onclick="fecharModalFunc()" class="btn-secundario">Cancelar</button>
-                    <button onclick="cadastrarUsuario(event)" class="btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <button type="button" onclick="cadastrarUsuario(event)" class="btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
                         <i class="fas fa-save"></i> Salvar
                     </button>
                 </div>

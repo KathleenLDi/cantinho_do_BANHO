@@ -234,6 +234,16 @@ function mostrarOcultarFuncao() {
 function cadastrarUsuario(event) {
     event.preventDefault();
 
+    // 1. Captura o botão que foi clicado
+    const btnSalvar = document.querySelector('#modalFunc .btn-primary');
+    const textoOriginalBotao = btnSalvar.innerHTML;
+
+    // 2. Coloca o botão em estado de "Aguarde"
+    btnSalvar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Aguarde...';
+    btnSalvar.disabled = true;
+    btnSalvar.style.cursor = 'wait';
+    btnSalvar.style.opacity = '0.7';
+
     const nomeDigitado = document.getElementById('nomeFuncionario').value;
     const emailDigitado = document.getElementById('emailFuncionario').value;
     const senhaDigitada = document.getElementById('senhaFuncionario').value;
@@ -284,11 +294,12 @@ function cadastrarUsuario(event) {
                     return response.json();
                 } else {
                     return response.text().then(text => {
-                        throw new Error(text)
+                        throw new Error(text);
                     });
                 }
             })
             .then(dadosRecebidos => {
+                restaurarBotaoSalvar(btnSalvar, textoOriginalBotao);
                 fecharModalFunc();
 
                 // Só exibe a tela de "Sucesso com Senha e Matrícula" se for um cadastro NOVO
@@ -309,14 +320,43 @@ function cadastrarUsuario(event) {
                 carregarFuncionariosDoBanco();
             })
             .catch(error => {
+                restaurarBotaoSalvar(btnSalvar, textoOriginalBotao);
                 alert(error.message);
             });
 }
 
 // Local ainda
-function excluirFunc(id) {
-    if (!confirm('Excluir funcionário?'))
+async function excluirFunc(id) {
+    if (!confirm('Tem certeza que deseja excluir este funcionário permanentemente? O acesso dele ao sistema será revogado.')) {
         return;
+    }
+
+    try {
+        // 2. Prepara os dados para enviar ao Java (Formato formulário)
+        const params = new URLSearchParams();
+        params.append('id', id);
+
+        // 3. Dispara a requisição POST para a nova Servlet
+        const resposta = await fetch('../api/funcionarios/excluir', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+
+        if (resposta.ok) {
+            alert("Funcionário excluído com sucesso!");
+
+            // 4. Recarrega a lista de funcionários do banco para atualizar a tela e os dropdowns
+            await carregarFuncionariosDoBanco();
+
+        } else {
+            const msgErro = await resposta.text();
+            alert("Erro ao excluir: " + msgErro);
+        }
+    } catch (erro) {
+        console.error("Erro na requisição:", erro);
+        alert("Falha de comunicação com o servidor.");
+    }
 }
 
 function validarCPF(cpf) {
@@ -452,4 +492,11 @@ function mascaraMoeda(evento) {
     v = v.replace(".", ","); // Troca ponto por vírgula
     v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Coloca ponto a cada 3 dígitos
     evento.target.value = "R$ " + v;
+}
+
+function restaurarBotaoSalvar(botao, textoOriginal) {
+    botao.innerHTML = textoOriginal;
+    botao.disabled = false;
+    botao.style.cursor = 'pointer';
+    botao.style.opacity = '1';
 }

@@ -50,6 +50,34 @@ public class UsuarioDAO {
         }
     }
 
+    public boolean existeEmail(String email) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long quantidade = em.createQuery("SELECT COUNT(u) FROM Usuario u WHERE u.email = :pEmail", Long.class)
+                    .setParameter(":Email", email)
+                    .getSingleResult();
+            return quantidade > 0;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public boolean existeCpf(String cpf) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long quantidade = em.createQuery("SELECT COUNT(u) FROM Usuario u WHERE u.cpf = :pCpf", Long.class)
+                    .setParameter("pCpf", cpf)
+                    .getSingleResult();
+            return quantidade > 0;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
     // Apenas usuários com a conta Ativada
     public List<Usuario> buscarTodos() {
         EntityManager em = JPAUtil.getEntityManager();

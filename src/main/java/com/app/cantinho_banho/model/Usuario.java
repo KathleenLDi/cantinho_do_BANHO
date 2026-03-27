@@ -33,7 +33,7 @@ public class Usuario implements Serializable {
     @Column(unique = true, nullable = false, length = 14)
     private String cpf;
 
-    @Column(unique = true, length = 20)
+    @Column(length = 20)
     private String rg;
 
     @Column(name = "data_criacao", updatable = false)

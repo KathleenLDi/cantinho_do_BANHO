@@ -1,6 +1,7 @@
 package com.app.cantinho_banho.controller;
 
 import com.app.cantinho_banho.dao.FuncionarioDAO;
+import com.app.cantinho_banho.dao.UsuarioDAO;
 import com.app.cantinho_banho.model.Funcionario;
 import com.app.cantinho_banho.model.Usuario;
 import java.io.IOException;
@@ -61,11 +62,28 @@ public class CadastroFuncionarioServlet extends HttpServlet {
             }
 
             Usuario novoUsuario = new Usuario();
+            UsuarioDAO usuDAO = new UsuarioDAO();
+
+            if (usuDAO.existeEmail(email)) {
+                response.setStatus(500);
+                response.getWriter().write("Erro ao cadastrar usuário. @Email");
+                return;
+            } else {
+                novoUsuario.setEmail(email);
+            }
+
+            if (usuDAO.existeCpf(cpf)) {
+                response.setStatus(500);
+                response.getWriter().write("Erro ao cadastrar usuário. @Cpf");
+                return;
+            } else {
+                novoUsuario.setCpf(cpf);
+            }
+
             novoUsuario.setNome(nome);
-            novoUsuario.setEmail(email);
             String senhaCriptografada = BCrypt.hashpw(senha, BCrypt.gensalt());
             novoUsuario.setSenha(senhaCriptografada);
-            novoUsuario.setCpf(cpf);
+
             novoUsuario.setRg(rg);
             novoUsuario.setReset_password(true);
 
@@ -96,11 +114,8 @@ public class CadastroFuncionarioServlet extends HttpServlet {
             String jsonResponse = "{\"matricula\": \"" + func.getMatricula() + "\"}";
             response.getWriter().write(jsonResponse);
 
-        } catch (Exception e) {
-            response.setStatus(500);
-            response.getWriter().write("Erro ao cadastrar usuário. Verifique se o E-mail ou CPF já existem. Detalhes: " + e.getMessage());
-            e.printStackTrace();
+        } catch (IOException | NumberFormatException e) {
+            System.err.println("ERRO: " + e);
         }
-
     }
 }

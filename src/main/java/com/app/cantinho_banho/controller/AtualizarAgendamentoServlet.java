@@ -16,13 +16,15 @@ public class AtualizarAgendamentoServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        
         try {
             Long id = Long.parseLong(request.getParameter("id"));
             AgendamentoDAO dao = new AgendamentoDAO();
             Agendamento a = dao.buscarPorId(id);
 
             if (a != null) {
-                // Pega os dados do Front-end
                 String nomeFuncionario = request.getParameter("funcionario");
                 String strValor = request.getParameter("valor");
                 String formaPag = request.getParameter("formaPag");
@@ -31,7 +33,6 @@ public class AtualizarAgendamentoServlet extends HttpServlet {
                 String hSaida = request.getParameter("saida_pet");
                 String obsInternas = request.getParameter("obs");
 
-                // Atualiza os valores básicos
                 if (strValor != null && !strValor.isEmpty()) {
                     a.setValor(Double.parseDouble(strValor));
                 }
@@ -39,7 +40,6 @@ public class AtualizarAgendamentoServlet extends HttpServlet {
                 a.setStatusPagamento(statusPag);
                 a.setObs(obsInternas);
 
-                // Trata as horas (Só salva se o Admin tiver preenchido)
                 if (hEntrada != null && !hEntrada.isEmpty()) {
                     a.setEntrada_pet(LocalTime.parse(hEntrada));
                 }

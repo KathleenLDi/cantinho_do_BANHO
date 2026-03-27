@@ -1,7 +1,23 @@
 let ultimoHashDados = "";
 
+function pararAnimacaoSync(icone) {
+    if (icone) {
+        icone.classList.remove('fa-spin');
+        // Se não deu erro (não tá vermelho), volta pro cinza discreto
+        if (icone.style.color !== 'rgb(199, 122, 122)' && icone.style.color !== '#c77a7a') {
+            icone.style.color = '#ccc';
+        }
+    }
+}
+
 async function carregarAgendaDoBanco(silencioso = false) {
     const el = document.getElementById('lista-agenda');
+
+    const iconeSync = document.getElementById('icone-sync');
+    if (iconeSync) {
+        iconeSync.classList.add('fa-spin'); //  girar
+        iconeSync.style.color = '#C9A96E';
+    }
 
     const elementoFocado = document.activeElement;
     const idFocado = elementoFocado ? elementoFocado.id : null;
@@ -35,7 +51,12 @@ async function carregarAgendaDoBanco(silencioso = false) {
         const novoHash = JSON.stringify(todosOsAgendamentos);
 
         if (silencioso && novoHash === ultimoHashDados) {
-            // Se nada mudou no banco, aborta a função aqui. A tela fica intacta!
+            if (iconeSync) {
+                setTimeout(() => {
+                    iconeSync.classList.remove('fa-spin');
+                    iconeSync.style.color = '#ccc'; // Volta pro cinza
+                }, 600);
+            }
             return;
         }
 
@@ -91,9 +112,17 @@ async function carregarAgendaDoBanco(silencioso = false) {
         if (!document.getElementById('page-dashboard').classList.contains('hidden')) {
             renderDashboard();
         }
-
+        if (iconeSync) {
+            setTimeout(() => {
+                iconeSync.classList.remove('fa-spin');
+                iconeSync.style.color = '#ccc'; // Volta pro cinza
+            }, 600);
+        }
     } catch (erro) {
-        console.error("Erro na integração:", erro);
+        if (iconeSync) {
+            iconeSync.style.color = '#ff0000';
+            // Repare que NÃO removemos o 'fa-spin' aqui. Ele vai girar pra sempre!
+        }
         if (el)
             el.innerHTML = `<p style="color:red;text-align:center">Erro ao conectar com o banco de dados.</p>`;
 }
@@ -135,11 +164,11 @@ function renderAgenda() {
                   <select onchange="saveCampo(${a.id},'funcionario',this.value,'agenda')">${funcOpts.replace(`>${a.funcionario}<`, ` selected>${a.funcionario}<`)}</select>
                 </div>
                 <div class="ag-field"><label>Valor Cobrado (R$)</label>
-                  <input type="number" step="0.01" value="${a.valor || ''}" placeholder="0,00" onchange="saveCampo(${a.id},'valor',parseFloat(this.value)||0,'agenda')"/>
+                    <input type="text" value="${formatarValorTela(a.valor)}" placeholder="0,00" oninput="aplicarMascaraMoeda(this)"/>
                 </div>
                 <div class="ag-field"><label>Forma de Pagamento</label>
                   <select onchange="saveCampo(${a.id},'formaPag',this.value,'agenda')">
-                    <option value="" ${!a.formaPaga ? 'selected' : ''}>— Selecionar —</option>
+                    <option value="" ${!a.formaPag ? 'selected' : ''}>— Selecionar —</option>
                     ${['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito'].map(p => `<option ${a.formaPag === p ? 'selected' : ''}>${p}</option>`).join('')}
                   </select>
                 </div>
@@ -150,20 +179,20 @@ function renderAgenda() {
                   </select>
                 </div>
                 <div class="ag-field"><label>Entrada do Pet</label>
-                  <input type="time" value="${a.entrada_pet || ''}" onchange="saveCampo(${a.id},'horarioEntrada',this.value,'agenda')"/>
+                  <input type="time" value="${a.entrada_pet || ''}" onchange="saveCampo(${a.id},'entrada_pet',this.value,'agenda')"/>
                 </div>
                 <div class="ag-field"><label>Saída do Pet</label>
-                  <input type="time" value="${a.saida_pet || ''}" onchange="saveCampo(${a.id},'horarioSaida',this.value,'agenda')"/>
+                  <input type="time" value="${a.saida_pet || ''}" onchange="saveCampo(${a.id},'saida_pet',this.value,'agenda')"/>
                 </div>
               </div>
               <div class="ac-obs" style="margin-bottom:10px">
                 <label>Observações Internas</label>
-                <textarea rows="2" placeholder="Notas, produtos..." onchange="saveCampo(${a.id},'obsInternas',this.value,'agenda')">${a.obs || ''}</textarea>
+                <textarea rows="2" placeholder="Notas, produtos..." onchange="saveCampo(${a.id},'obs',this.value,'agenda')">${a.obs || ''}</textarea>
               </div>
               ${a.obs ? `<div style="font-size:.78rem;color:#888;margin-bottom:10px"><i class="fas fa-sticky-note" style="color:#C9A96E;margin-right:5px"></i>${a.obs}</div>` : ''}
               <div class="ac-footer">
                 <button class="btn-save-agenda" onclick="salvarAgendaManual(${a.id},this)"><i class="fas fa-save"></i> Salvar</button>
-                <button class="btn-concluir" onclick="concluirAtendimento(${a.id})"><i class="fas fa-check-double"></i> Serviço Concluído</button>
+                <button class="btn-concluir" onclick="concluirAtendimento(${a.id}, this)"><i class="fas fa-check-double"></i> Serviço Concluído</button>
               </div>
             </div>`).join('');
 }
@@ -178,6 +207,11 @@ function renderPendentes() {
         el.innerHTML = `<div class="empty-state"><i class="fas fa-clock" style="color:#555"></i><p>Nenhum pedido pendente</p></div>`;
         return;
     }
+
+    const dataAtual = new Date();
+    dataAtual.setMinutes(dataAtual.getMinutes() - dataAtual.getTimezoneOffset());
+    const dataMinima = dataAtual.toISOString().split('T')[0];
+
     el.innerHTML = lista.map(a => `
             <div class="pendente-card">
               <div class="pc-header">
@@ -193,7 +227,7 @@ function renderPendentes() {
               <div class="pc-reagen">
                 <div class="field">
                     <label>Nova Data</label>
-                    <input type="date" id="pnd-data-${a.id}" value="${a.data}" onchange="verificarDisponibilidade(${a.id}, this.value)"/>
+                    <input type="date" id="pnd-data-${a.id}" value="${a.data}" min="${dataMinima} onchange="verificarDisponibilidade(${a.id}, this.value)"/>
                 </div>
                 <div class="field">
                     <label>Nova Hora</label>
@@ -202,13 +236,76 @@ function renderPendentes() {
                 <div id="pnd-disp-${a.id}" style="width: 100%; font-size: 0.72rem; margin-top: 4px;"></div>
               </div>
               <div class="pc-actions">
-                <button class="btn-confirmar-pend" onclick="confirmarPendente(${a.id})"><i class="fas fa-check"></i> Confirmar & WhatsApp</button>
-                <button class="btn-wpp-pend" onclick="sugerirReagendamento(${a.id}, '${a.contato}', '${a.dono}', '${a.pet}')">
-                    <i class="fab fa-whatsapp"></i> Sugerir Horário
+                <button class="btn-confirmar-pend" onclick="confirmarPendente(${a.id})">
+                    <i class="fas fa-check"></i> Confirmar
                 </button>
-                <button class="btn-excluir-pend" onclick="excluirPendente(${a.id})"><i class="fas fa-trash"></i></button>
+                
+                <button class="btn-wpp-pend" onclick="sugerirReagendamento(${a.id}, '${a.contato}', '${a.dono}', '${a.pet}')">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                
+                <button class="btn-excluir-pend" onclick="excluirPendente(${a.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
               </div>
             </div>`).join('');
+
+    lista.forEach(a => {
+        verificarDisponibilidade(a.id, a.data);
+    });
+}
+
+function renderRetirada() {
+    // 1. Pega o valor da barra de busca (se você tiver uma na aba de retirada)
+    const busca = (document.getElementById('busca-retirada')?.value || '').toLowerCase();
+
+    // 2. Filtra a lista 'retirada' (que o nosso carregarAgendaDoBanco já alimenta automaticamente)
+    const lista = retirada.filter(a => (a.pet + a.dono + a.servico).toLowerCase().includes(busca));
+
+    // 3. Acha a div principal onde os cards vão aparecer
+    const el = document.getElementById('lista-retirada');
+    if (!el)
+        return;
+
+    if (!lista.length) {
+        el.innerHTML = `<div class="empty-state"><i class="fas fa-home" style="color:#5ac75a; font-size: 2rem; margin-bottom: 10px;"></i><p>Nenhum pet aguardando o dono no momento.</p></div>`;
+        return;
+    }
+
+    // 4. Desenha os cards
+    el.innerHTML = lista.map(a => {
+        // Formata o valor cobrado para mostrar bonitinho (ex: 150.5 -> 150,50)
+        const valorFormatado = a.valor ? parseFloat(a.valor).toFixed(2).replace('.', ',') : '0,00';
+        // Define a cor do texto do pagamento (Vermelho se pendente, Verde se pago)
+        const corPagamento = (a.status_pagamento === 'Pago') ? '#5ac75a' : '#c77a7a';
+
+        return `
+            <div class="agenda-card" style="border-left: 5px solid #17a2b8;">
+                <div class="ac-header">
+                    <div>
+                        <div class="ac-pet"><i class="fas fa-paw" style="color:#17a2b8;margin-right:6px;font-size:.8rem"></i>${a.pet} <small style="color:#888;font-weight:400">(${a.tipo})</small></div>
+                        <div class="ac-dono">${a.dono} · <a href="https://wa.me/55${cleanTel(a.contato)}" target="_blank" style="color:#25d366"><i class="fab fa-whatsapp"></i> ${a.contato}</a></div>
+                    </div>
+                    <div style="text-align:right">
+                        <span class="badge" style="background-color: #17a2b8; color: white;">Aguardando Dono</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:15px; font-size: 0.95rem; line-height: 1.6;">
+                    <div><strong>Serviço:</strong> <span class="badge badge-amarelo">${a.servico}</span></div>
+                    <div><strong>Valor Final:</strong> R$ ${valorFormatado}</div>
+                    <div><strong>Status do Pagamento:</strong> <span style="color: ${corPagamento}; font-weight: bold;">${a.status_pagamento || 'Pendente'}</span></div>
+                </div>
+                
+                ${a.obs ? `<div style="font-size:.85rem;color:#888;margin-bottom:15px; background: #f9f9f9; padding: 8px; border-radius: 4px;"><i class="fas fa-info-circle" style="color:#C9A96E;margin-right:5px"></i>${a.obs}</div>` : ''}
+                
+                <div class="ac-footer" style="display: flex; justify-content: flex-end;">
+                    <button class="btn-concluir" onclick="finalizarRetirada(${a.id}, this)" style="background-color: #5ac75a; color: #000; padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-flag-checkered"></i> Entregar Pet (Finalizar)
+                    </button>
+                </div>
+            </div>`;
+    }).join('');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -240,13 +337,9 @@ function sugerirReagendamento(id, contato, dono, pet) {
         return;
     }
 
-    // 2. Formata a data (de 2026-03-25 para 25/03/2026)
     const dataFormatada = inputData.split('-').reverse().join('/');
-
-    // 3. Monta o texto profissional para o WhatsApp
     const mensagem = `*Cantinho do Banho*\n\nOlá, *${dono}*! Tudo bem?\n\nTemos um horário disponível para o(a) *${pet}* no dia *${dataFormatada}* às *${inputHora}*.\n\nPodemos confirmar esse reagendamento?`;
 
-    // 4. Abre o WhatsApp usando a sua função já existente
     openWA(contato, mensagem);
 }
 
@@ -260,43 +353,47 @@ function verificarDisponibilidade(id, dataSelecionada) {
         return;
     }
 
-    // 1. Vasculha a 'agenda' (confirmados) buscando quem já está marcado nesse dia
     const horariosOcupados = agenda
             .filter(a => a.data === dataSelecionada)
             .map(a => a.hora)
-            .sort(); // Ordena do mais cedo para o mais tarde
+            .sort();
 
-    // 2. Mostra o resultado na tela com as cores do seu tema
     if (horariosOcupados.length === 0) {
         elDisp.innerHTML = `<span style="color:#5ac75a"><i class="fas fa-check-circle"></i> Dia totalmente livre!</span>`;
     } else {
-        // Se tiver muita gente, junta com vírgulas. Ex: 09:00, 10:30, 14:00
         elDisp.innerHTML = `<span style="color:#C9A96E"><i class="fas fa-exclamation-circle"></i> Ocupados: <strong>${horariosOcupados.join(', ')}</strong></span>`;
     }
 }
 
-// CONFIRMAR PENDENTE (Envia para o Banco)
 async function confirmarPendente(id) {
-    // Pega a nova data e hora que o Admin possa ter digitado nas caixinhas
     const novaData = document.getElementById(`pnd-data-${id}`)?.value;
     const novaHora = document.getElementById(`pnd-hora-${id}`)?.value;
 
-    // Acha o item na lista atual para podermos mandar o WhatsApp depois
     const item = pendentes.find(x => x.id === id);
     if (!item)
         return;
+
+    const dataFinal = novaData || item.data;
+    const horaFinal = novaHora || item.hora;
+
+    const horarioOcupado = agenda.some(a => a.data === dataFinal && a.hora === horaFinal);
+
+    if (horarioOcupado) {
+        const dataBR = dataFinal.split('-').reverse().join('/');
+        alert(`⚠️ Choque de Horários!\n\nJá existe um agendamento confirmado para o dia ${dataBR} às ${horaFinal}.\n\nPor favor, escolha um horário diferente antes de confirmar.`);
+        return;
+    }
 
     try {
         // Prepara os dados para enviar ao Java
         const params = new URLSearchParams();
         params.append('id', id);
-        params.append('status', 'Confirmado'); // Muda o status no banco
+        params.append('status', 'Confirmado')
         if (novaData)
             params.append('data', novaData);
         if (novaHora)
             params.append('hora', novaHora);
 
-        // Dispara a requisição POST para a Servlet que criamos
         const resposta = await fetch('../api/agendamentos/confirmar', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -304,13 +401,7 @@ async function confirmarPendente(id) {
         });
 
         if (resposta.ok) {
-            // Sincroniza tudo com o banco silenciosamente
             await carregarAgendaDoBanco(true);
-
-            // Formata a data e manda a mensagem no WhatsApp
-            const dataFormatada = (novaData || item.data).split('-').reverse().join('/');
-            const msg = `✅ *Cantinho do Banho*\n\nOlá, *${item.dono}*! 🐾\nSeu agendamento para o *${item.pet}* foi *confirmado* para o dia ${dataFormatada} às ${novaHora || item.hora}!`;
-            openWA(item.contato, msg);
         } else {
             alert("Erro ao confirmar no banco de dados.");
         }
@@ -320,13 +411,11 @@ async function confirmarPendente(id) {
     }
 }
 
-// EXCLUIR PENDENTE (Deleta do Banco)
 async function excluirPendente(id) {
     if (!confirm('Tem certeza que deseja remover este agendamento permanentemente?'))
         return;
 
     try {
-        // Envia o ID para a Servlet de Exclusão
         const params = new URLSearchParams();
         params.append('id', id);
 
@@ -337,7 +426,6 @@ async function excluirPendente(id) {
         });
 
         if (resposta.ok) {
-            // Recarrega os dados para sumir da tela
             await carregarAgendaDoBanco(true);
         } else {
             alert("Erro ao excluir do banco de dados.");
@@ -348,30 +436,46 @@ async function excluirPendente(id) {
     }
 }
 
-// BOTÃO "SALVAR" (Salva funcionário, horários, valores e observações)
 async function salvarAgendaManual(id, btn) {
-    const item = agenda.find(a => a.id === id);
-    if (!item)
+    const card = btn.closest('.agenda-card');
+    if (!card)
         return;
 
-    // Feedback visual de carregamento no botão
     const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Salvando...';
+    const originalBg = btn.style.backgroundColor;
+    const originalColor = btn.style.color;
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Aguarde...';
     btn.disabled = true;
+    btn.style.opacity = '0.7';
 
     try {
-        // Prepara os dados para enviar ao Java
-        const params = new URLSearchParams();
-        params.append('id', item.id);
-        params.append('funcionario', item.funcionario || ''); // Nome do funcionário
-        params.append('valor', item.valor || 0);
-        params.append('formaPag', item.formaPag || '');
-        params.append('status_pagamento', item.status_pagamento || 'Pendente');
-        params.append('entrada_pet', item.entrada_pet || '');
-        params.append('saida_pet', item.saida_pet || '');
-        params.append('obs', item.obsInternas || '');
+        const selects = card.querySelectorAll('select');
+        const inputs = card.querySelectorAll('input');
+        const textarea = card.querySelector('textarea');
 
-        // Manda para a Servlet de Atualização
+        const funcionario = selects[0]?.value || '';
+        const formaPag = selects[1]?.value || '';
+        const statusPag = selects[2]?.value || 'Pendente';
+
+        let valorString = inputs[0]?.value || '0';
+        // Tira os pontos de milhar e troca a vírgula por ponto ("1250.00")
+        const valorLimpoParaOJava = valorString.replace(/\./g, '').replace(',', '.');
+        const entrada_pet = inputs[1]?.value || '';
+        const saida_pet = inputs[2]?.value || '';
+
+        const obs = textarea?.value || '';
+
+        const params = new URLSearchParams();
+        params.append('id', id);
+        params.append('funcionario', funcionario);
+        params.append('valor', valorLimpoParaOJava);
+        params.append('formaPag', formaPag);
+        params.append('status_pagamento', statusPag);
+        params.append('entrada_pet', entrada_pet);
+        params.append('saida_pet', saida_pet);
+        params.append('obs', obs);
+
         const resposta = await fetch('../api/agendamentos/atualizar', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -379,19 +483,20 @@ async function salvarAgendaManual(id, btn) {
         });
 
         if (resposta.ok) {
-            // Sucesso! Fica verdinho por 2 segundos
             btn.innerHTML = '<i class="fas fa-check"></i> Salvo!';
             btn.style.backgroundColor = '#5ac75a';
-            btn.style.color = '#000';
+            btn.style.color = '#fff';
+            btn.style.opacity = '1';
+
+            carregarAgendaDoBanco(true);
 
             setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
-                btn.style.backgroundColor = '';
-                btn.style.color = '';
-            }, 5000);
+                btn.style.backgroundColor = originalBg;
+                btn.style.color = originalColor;
+            }, 3000);
 
-            carregarAgendaDoBanco(true);
         } else {
             throw new Error('Falha no servidor');
         }
@@ -400,17 +505,23 @@ async function salvarAgendaManual(id, btn) {
         alert("Erro ao salvar os dados no banco.");
         btn.innerHTML = originalHTML;
         btn.disabled = false;
+        btn.style.opacity = '1';
     }
+
 }
 
-// BOTÃO "SERVIÇO CONCLUÍDO" (Move para a Retirada e avisa o cliente)
-async function concluirAtendimento(id) {
+async function concluirAtendimento(id, btn) {
     const item = agenda.find(a => a.id === id);
     if (!item)
         return;
 
     if (!confirm(`O serviço de ${item.pet} foi finalizado? O cliente será notificado.`))
         return;
+
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A processar...';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
 
     try {
         const params = new URLSearchParams();
@@ -439,6 +550,9 @@ async function concluirAtendimento(id) {
     } catch (erro) {
         console.error("Erro:", erro);
         alert("Falha de comunicação com o servidor.");
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+        btn.style.opacity = '1';
     }
 }
 
@@ -459,4 +573,66 @@ async function listarFuncionariosDoBanco() {
     } catch (erro) {
         console.error("Erro ao carregar funcionários:", erro);
     }
+}
+
+async function finalizarRetirada(id, btn) {
+    const item = retirada.find(a => a.id === id);
+    if (!item)
+        return;
+
+    if (item.status_pagamento !== 'Pago') {
+        const confirmarPagamento = confirm(`Atenção: O sistema indica que o pagamento de R$ ${item.valor} ainda está PENDENTE.\n\nTem a certeza que deseja entregar o ${item.pet} e finalizar o serviço?`);
+        if (!confirmarPagamento)
+            return;
+    } else {
+        if (!confirm(`Confirmar a entrega do ${item.pet} ao dono? O agendamento será arquivado no histórico.`))
+            return;
+    }
+
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A arquivar...';
+    btn.disabled = true;
+
+    try {
+        const params = new URLSearchParams();
+        params.append('id', id);
+        params.append('status', 'Concluido');
+
+        const resposta = await fetch('../api/agendamentos/concluir', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+
+        if (resposta.ok) {
+            await carregarAgendaDoBanco(true);
+        } else {
+            throw new Error('Falha no servidor');
+        }
+    } catch (erro) {
+        console.error("Erro:", erro);
+        alert("Erro ao arquivar o agendamento. Tente novamente.");
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
+}
+
+// Formata o número do banco (ex: 150.5) para a tela (ex: 150,50)
+function formatarValorTela(valor) {
+    if (!valor || isNaN(valor))
+        return '';
+    let v = parseFloat(valor).toFixed(2);
+    return v.replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+}
+
+function aplicarMascaraMoeda(input) {
+    let v = input.value.replace(/\D/g, ''); // Remove tudo que não for número
+    if (!v) {
+        input.value = '';
+        return;
+    }
+    v = (parseInt(v) / 100).toFixed(2) + ''; // Divide por 100 para criar os centavos
+    v = v.replace('.', ','); // Troca o ponto da casa decimal por vírgula
+    v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); // Coloca os pontos de milhar
+    input.value = v;
 }

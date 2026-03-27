@@ -38,6 +38,27 @@ public class FuncionarioDAO {
         }
     }
 
+    public void remover(Long id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            Funcionario funcionario = em.find(Funcionario.class, id);
+            if (funcionario != null) {
+                em.remove(funcionario);
+            }
+
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
     public String gerarMatriculaUnica() {
         EntityManager em = JPAUtil.getEntityManager();
         Random random = new Random();
@@ -68,8 +89,10 @@ public class FuncionarioDAO {
     public List<Funcionario> buscarTodos() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            return em.createQuery("SELECT f FROM Funcionario f", Funcionario.class)
-                    .getResultList();
+            // O JPQL entra na classe Funcionario (f), vai até a classe Usuario, e olha o perfil!
+            String jpql = "SELECT f FROM Funcionario f WHERE f.usuario.perfil NOT IN ('Admin', 'Administrador')";
+
+            return em.createQuery(jpql, Funcionario.class).getResultList();
         } finally {
             em.close();
         }
@@ -82,7 +105,7 @@ public class FuncionarioDAO {
 
             return em.createQuery(jpql, Funcionario.class)
                     .setParameter("nomeDaTela", nome)
-                    .getSingleResult(); 
+                    .getSingleResult();
 
         } catch (NoResultException e) {
             return null;

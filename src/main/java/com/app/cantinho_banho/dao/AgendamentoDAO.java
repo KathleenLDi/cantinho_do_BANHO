@@ -38,7 +38,7 @@ public class AgendamentoDAO {
         }
     }
 
-    // ?Busca um agendamento específico pelo ID
+    // Busca um agendamento específico pelo ID
     public Agendamento buscarPorId(Long id) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
