@@ -5,10 +5,25 @@
 package com.app.cantinho_banho.dao;
 
 import com.app.cantinho_banho.model.Cliente;
+import com.app.cantinho_banho.model.Usuario;
 import java.util.List;
 import javax.persistence.EntityManager;
 
 public class ClienteDAO {
+
+    public void atualizar(Cliente cliente) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(cliente);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 
     public Cliente buscarPorId(Long id) {
         // 1. Abrimos a "porta" para o banco de dados
@@ -54,5 +69,25 @@ public class ClienteDAO {
         return em.createQuery("FROM Cliente", Cliente.class).getResultList();
     }
     
-    
+    public void criarAcessoEVincular(Cliente cliente, Usuario usuario) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            
+            em.persist(usuario);
+
+            cliente.setUsuario(usuario);
+            em.merge(cliente);
+
+            em.getTransaction().commit(); 
+            
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); 
+            }
+            throw e; 
+        } finally {
+            em.close();
+        }
+    }
 }

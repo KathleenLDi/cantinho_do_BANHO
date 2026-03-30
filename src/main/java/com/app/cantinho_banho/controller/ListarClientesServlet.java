@@ -46,7 +46,8 @@ public class ListarClientesServlet extends HttpServlet {
                         json.append("{");
                         json.append("\"id\":").append(p.getId()).append(",");
                         json.append("\"nome\":\"").append(escapeJson(p.getNome())).append("\",");
-                        json.append("\"tipo\":\"").append(escapeJson(p.getTipo())).append("\"");
+                        json.append("\"tipo\":\"").append(escapeJson(p.getTipo())).append("\",");
+                        json.append("\"obs\":\"").append(p.getObs()).append("\"");
                         json.append("}");
                     }
                 }

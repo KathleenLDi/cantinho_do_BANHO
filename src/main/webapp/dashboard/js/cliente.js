@@ -1,8 +1,6 @@
 let editCliId = null;
 let listaClientes = [];
 
-carregarClientesDoBanco();
-
 async function carregarClientesDoBanco() {
     try {
         const resposta = await fetch('../api/clientes/listar');
@@ -29,73 +27,293 @@ function renderClientes() {
     });
 
     const el = document.getElementById('lista-clientes');
-    if (!el) {
-        console.error("A div 'lista-clientes' não foi encontrada no HTML!");
+    if (!el)
         return;
-    }
 
     if (!lista.length) {
-        el.innerHTML = `<div class="empty-state" style="padding: 20px; text-align: center; color: #888;">Nenhum cliente cadastrado ainda</div>`;
+        el.innerHTML = `<div class="empty-state" style="padding: 30px; text-align: center; color: #888; background: #fff; border-radius: 8px; border: 1px dashed #ccc;"><i class="fas fa-users" style="font-size: 2rem; color: #C9A96E; margin-bottom: 10px;"></i><p>Nenhum cliente encontrado.</p></div>`;
         return;
     }
 
+    const pacotesCadastrados = typeof pacotes !== 'undefined' ? pacotes : [];
+
     el.innerHTML = lista.map(c => {
-        const pac = pacotes.find(p => p.id === c.pacoteId);
+        const pac = pacotesCadastrados.find(p => p.id === c.pacoteId);
         const pendServ = c.servicos?.filter(s => !s.usado).length || 0;
         const usadoServ = c.servicos?.filter(s => s.usado).length || 0;
         const totalServ = c.servicos?.length || 0;
         const pct = totalServ ? Math.round((usadoServ / totalServ) * 100) : 0;
 
+        // 🟢 Selos (Badges) com design Premium (Fundo claro, borda e texto forte)
         const badgeVinculo = c.temUsuario
-                ? `<span class="badge" style="background-color: #5ac75a; color: #fff; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px;"><i class="fas fa-user-check"></i> Com Acesso</span>`
-                : `<span class="badge" style="background-color: #c77a7a; color: #fff; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px;"><i class="fas fa-user-times"></i> SEM VÍNCULO</span>`;
+                ? `<span class="badge" style="background-color: #e8f8e8; color: #28a745; border: 1px solid #28a745; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: 600;"><i class="fas fa-check-circle"></i> Com Acesso</span>`
+                : `<span class="badge" style="background-color: #fcebeb; color: #dc3545; border: 1px solid #dc3545; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: 600;"><i class="fas fa-exclamation-circle"></i> Sem Acesso</span>`;
 
+        // 🟢 Botão alinhado ao tema
         const btnAcesso = !c.temUsuario
-                ? `<button onclick="abrirModalCriarUsuario(${c.id}, '${c.nome}')" class="btn-novo-acesso" style="background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;"><i class="fas fa-key"></i> Criar Acesso</button>`
+                ? `<button onclick="event.stopPropagation(); abrirModalCriarUsuario(${c.id}, '${c.nome}')" class="btn-primary" style="background: #17a2b8; border-color: #17a2b8; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(23,162,184,0.2);"><i class="fas fa-key"></i> Criar Acesso</button>`
                 : '';
 
+        // 🟢 Pets formatados com elegância
         const nomesDosPets = (c.pets && c.pets.length > 0)
-                ? c.pets.map(p => `${p.nome} <small style="color:#888;">(${p.tipo})</small>`).join(', ')
-                : '<em>Nenhum pet cadastrado</em>';
+                ? c.pets.map((p, index) => {
+                    let htmlPet = `<span style="font-weight: 600; color: #2c3e50; font-size: 0.95rem;">${p.nome}</span> <span style="color:#888; font-size: 0.8rem;">(${p.tipo})</span>`;
 
+                    if (p.obs && p.obs.trim() !== "") {
+                        htmlPet += `<div style="font-size: 0.8rem; color: #666; margin-left: 5px; margin-top: 5px; border-left: 3px solid #C9A96E; padding-left: 8px; background: #fff; padding-top: 4px; padding-bottom: 4px; border-radius: 0 4px 4px 0;"><em><i class="fas fa-info-circle" style="color:#C9A96E; font-size: 0.75rem; margin-right: 4px;"></i>${p.obs}</em></div>`;
+                    }
+
+                    // Adiciona uma linha divisória pontilhada apenas se não for o último pet
+                    const isUltimo = index === c.pets.length - 1;
+                    const borda = isUltimo ? '' : 'border-bottom: 1px dashed #ddd; padding-bottom: 10px; margin-bottom: 10px;';
+
+                    return `<div style="${borda}">${htmlPet}</div>`;
+                }).join('')
+                : '<div style="color: #999; font-style: italic; font-size: 0.9rem;">Nenhum pet cadastrado no momento.</div>';
+
+        // 🟢 Link do WhatsApp direto no cartão (com stopPropagation para não abrir o modal de foco)
+        const telefoneFormatado = c.telefone || 'Sem telefone';
+        const linkWhats = c.telefone
+                ? `<a href="https://wa.me/55${cleanTel(c.telefone)}" target="_blank" onclick="event.stopPropagation()" style="color:#25d366; text-decoration: none; font-weight: 500; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"><i class="fab fa-whatsapp" style="font-size: 1.1rem; margin-right: 4px;"></i> ${telefoneFormatado}</a>`
+                : `<span style="color: #999;"><i class="fas fa-phone-slash"></i> Sem telefone</span>`;
+
+        // 🟢 Barra de Pacotes com visual de "Dashboard"
+        const pacoteHtml = pac && totalServ ? `
+            <div style="background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                <div style="font-size: 0.85rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; color: #444;"><i class="fas fa-box-open" style="color: #C9A96E; margin-right: 5px;"></i> ${pac.nome}</span>
+                    <span style="font-weight:bold; background: ${pendServ > 0 ? '#fff3cd' : '#d4edda'}; color: ${pendServ > 0 ? '#856404' : '#155724'}; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem;">
+                        ${pendServ > 0 ? pendServ + ' restantes' : '<i class="fas fa-check"></i> Concluído'}
+                    </span>
+                </div>
+                <div style="width: 100%; background-color: #e9ecef; border-radius: 10px; height: 10px; margin-bottom: 6px; overflow: hidden;">
+                    <div style="width: ${pct}%; background-color: ${pct === 100 ? '#28a745' : '#C9A96E'}; height: 100%; border-radius: 10px; transition: width 0.5s ease;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: #888; display: flex; justify-content: space-between;">
+                    <span>${usadoServ} de ${totalServ} utilizados</span>
+                    ${c.validadePacote ? `<span style="color: #dc3545;"><i class="far fa-calendar-times"></i> Vence em: ${fd(c.validadePacote)}</span>` : ''}
+                </div>
+            </div>
+        ` : `<div style="margin-bottom: 15px; font-size: 0.9rem; color: #777; padding: 10px; background: #fff; border: 1px dashed #ddd; border-radius: 6px;"><i class="fas fa-box" style="color:#ccc; margin-right: 5px;"></i> <strong>Pacote:</strong> Sem pacote ativo</div>`;
+
+        // 🟢 O CARTÃO PRINCIPAL
         return `
-        <div class="cliente-card" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #fff;">
+        <div class="cliente-card cartao-expansivel" onclick="focarCartaoCliente(this)" style="border: none; border-left: 5px solid #C9A96E; padding: 20px; border-radius: 8px; margin-bottom: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.3s ease; position: relative;">
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; color: #333; font-size: 1.1rem;"><i class="fas fa-user" style="color:#C9A96E; margin-right: 5px;"></i> ${c.nome}</h3>
-                <div>${badgeVinculo}</div>
+            <div class="ac-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="margin: 0 0 5px 0; color: #2c3e50; font-size: 1.25rem; font-weight: 700;">
+                        <i class="fas fa-user-circle" style="color:#C9A96E; margin-right: 6px;"></i> ${c.nome}
+                    </h3>
+                    <div style="margin-top: 4px; font-size: 0.95rem;">
+                        ${linkWhats}
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    ${badgeVinculo}
+                </div>
             </div>
 
-            <div style="color: #666; margin-bottom: 8px; font-size: 0.9rem;">
-                <i class="fab fa-whatsapp" style="color:#25d366;"></i> ${c.telefone || 'Sem telefone'}
-            </div>
-            <div style="background: #f9f9f9; padding: 8px; border-radius: 4px; margin-bottom: 12px; font-size: 0.9rem;">
-                <strong>Pets:</strong> ${nomesDosPets}
-            </div>
-
-            <div style="margin-bottom: 8px; font-size: 0.9rem;">
-                <strong>Pacote:</strong> ${pac ? pac.nome : '<span style="color:#888;">Sem pacote</span>'}
+            <div style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 12px 15px; border-radius: 6px; margin-bottom: 15px;">
+                <div style="margin-bottom: 10px; font-weight: 600; color: #2c3e50; font-size: 0.95rem; display: inline-block;">
+                    <i class="fas fa-paw" style="color:#C9A96E; margin-right: 5px;"></i> Pets do Cliente
+                </div>
+                <div style="margin-top: 5px;">
+                    ${nomesDosPets}
+                </div>
             </div>
 
-            ${pac && totalServ ? `
-            <div style="font-size: 0.85rem; margin-bottom: 5px; display: flex; justify-content: space-between;">
-                <span>${usadoServ}/${totalServ} serviços usados</span>
-                <span style="font-weight:bold; color: ${pendServ > 0 ? '#C9A96E' : '#5ac75a'};">
-                    ${pendServ > 0 ? pendServ + ' restantes' : 'Concluído!'}
-                </span>
-            </div>
-            <div style="width: 100%; background-color: #eee; border-radius: 4px; height: 8px; margin-bottom: 10px;">
-                <div style="width: ${pct}%; background-color: ${pct === 100 ? '#5ac75a' : '#C9A96E'}; height: 100%; border-radius: 4px; transition: width 0.3s;"></div>
-            </div>
-            ` : ''}
+            ${pacoteHtml}
 
-            ${c.validadePacote ? `<div style="font-size: 0.8rem; color: #888; margin-bottom: 10px;"><i class="fas fa-calendar-alt"></i> Validade: ${fd(c.validadePacote)}</div>` : ''}
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
-                <button onclick="abrirModalNovoPet(${c.id})" class="btn-add-pet" style="background: #eee; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;"><i class="fas fa-paw" style="color:#C9A96E;"></i> + Pet</button>
+            <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                 ${btnAcesso}
             </div>
             
         </div>`;
     }).join('');
+}
+
+// ================= EFEITO DE FOCO NO CARTÃO DO CLIENTE =================
+function focarCartaoCliente(cartaoClicado) {
+    if (cartaoClicado.classList.contains('cartao-focado')) {
+        fecharFocoCliente();
+        return;
+    }
+
+    fecharFocoCliente();
+
+    let overlay = document.getElementById('overlay-foco-cliente');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'overlay-foco-cliente';
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 998; cursor: pointer; display: none; transition: opacity 0.3s;';
+        overlay.onclick = fecharFocoCliente;
+        document.body.appendChild(overlay);
+    }
+
+    overlay.style.display = 'block';
+
+    cartaoClicado.classList.add('cartao-focado');
+}
+
+function fecharFocoCliente() {
+    const cartaoAberto = document.querySelector('.cartao-focado');
+    if (cartaoAberto) {
+        cartaoAberto.classList.remove('cartao-focado');
+    }
+
+    const overlay = document.getElementById('overlay-foco-cliente');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+// ================= FLUXO DE CRIAR ACESSO (CLIENTE) =================
+
+function abrirModalCriarUsuario(id, nome) {
+    // 🟢 MÁGICA AQUI: Se o cartão do cliente estiver focado no meio da tela, ele fecha antes de abrir o modal!
+    if (typeof fecharFocoCliente === 'function') {
+        fecharFocoCliente();
+    }
+
+    document.getElementById('id-cliente-acesso').value = id;
+    document.getElementById('nome-cliente-acesso').textContent = nome;
+    document.getElementById('email-acesso').value = '';
+    document.getElementById('cpf-acesso').value = '';
+
+    document.getElementById('modal-acesso').classList.remove('hidden');
+}
+
+function fecharModalAcesso() {
+    document.getElementById('modal-acesso').classList.add('hidden');
+}
+
+function mascaraCPF(input) {
+    let v = input.value.replace(/\D/g, "");
+    if (v.length > 11)
+        v = v.substring(0, 11);
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    input.value = v;
+}
+
+async function salvarAcessoCliente(e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('btn-gerar-acesso');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A gerar...';
+    btn.disabled = true;
+
+    const id = document.getElementById('id-cliente-acesso').value;
+    const email = document.getElementById('email-acesso').value;
+    const cpf = document.getElementById('cpf-acesso').value;
+
+    const params = new URLSearchParams();
+    params.append('clienteId', id);
+    params.append('email', email);
+    params.append('cpf', cpf);
+
+    try {
+        const resposta = await fetch('../api/clientes/criar-acesso', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+
+        if (!resposta.ok) {
+            const erroTexto = await resposta.text();
+            throw new Error(erroTexto);
+        }
+
+        const dados = await resposta.json();
+
+        fecharModalAcesso();
+        carregarClientesDoBanco();
+
+        const mensagem = `🐾 *Cantinho do Banho*\n\nOlá! O seu acesso ao nosso aplicativo foi criado com sucesso! 🎉\n\n*Seu Login:* ${email}\n*Senha temporária:* ${dados.senha}\n\nRecomendamos que altere a senha no seu primeiro acesso.\n\nBem-vindo(a) à família!`;
+
+        if (typeof openWA === 'function') {
+            openWA(dados.telefone, mensagem);
+        } else {
+            alert(`Acesso criado! Senha gerada: ${dados.senha}`);
+        }
+
+    } catch (erro) {
+        console.error("Erro:", erro);
+        alert("Erro ao criar o acesso. Verifique se o Email ou CPF já existem no sistema.");
+    } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
+}
+
+// ================= FLUXO DE NOVO CLIENTE =================
+function abrirModalNovoCliente() {
+    // Esconde qualquer cartão que esteja focado no meio da tela
+    if (typeof fecharFocoCliente === 'function') {
+        fecharFocoCliente();
+    }
+
+    // Limpa os campos do formulário
+    document.getElementById('nome-novo-cliente').value = '';
+    document.getElementById('telefone-novo-cliente').value = '';
+
+    // Abre o modal
+    document.getElementById('modal-novo-cliente').classList.remove('hidden');
+}
+
+function fecharModalNovoCliente() {
+    document.getElementById('modal-novo-cliente').classList.add('hidden');
+}
+
+// Máscara elegante para o número de telefone (00) 00000-0000
+function mascaraTelefone(input) {
+    let v = input.value.replace(/\D/g, ""); // Remove tudo que não é dígito
+    if (v.length > 11)
+        v = v.substring(0, 11);
+    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+    input.value = v;
+}
+
+// Envia os dados para a Servlet Java
+async function salvarNovoCliente(e) {
+    e.preventDefault(); // Impede a página de recarregar
+
+    const btn = document.getElementById('btn-salvar-cliente');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A guardar...';
+    btn.disabled = true;
+
+    const nome = document.getElementById('nome-novo-cliente').value;
+    const telefone = document.getElementById('telefone-novo-cliente').value;
+
+    const params = new URLSearchParams();
+    params.append('nome', nome);
+    params.append('telefone', telefone);
+
+    try {
+        const resposta = await fetch('../api/clientes/cadastrar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+
+        if (resposta.ok) {
+            fecharModalNovoCliente();
+            // 🟢 MÁGICA: Recarrega a lista do banco, e o novo cliente aparece instantaneamente!
+            await carregarClientesDoBanco();
+        } else {
+            const erroTexto = await resposta.text();
+            throw new Error(erroTexto || 'Erro desconhecido ao salvar.');
+        }
+    } catch (erro) {
+        console.error("Erro:", erro);
+        alert("Erro ao cadastrar cliente: " + erro.message);
+    } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
 }

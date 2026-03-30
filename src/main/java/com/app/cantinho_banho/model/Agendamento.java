@@ -3,7 +3,6 @@ package com.app.cantinho_banho.model;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,8 +26,8 @@ public class Agendamento implements Serializable {
     @JoinColumn(name = "funcionario_id")
     private Funcionario funcionario;
 
-    @Column(nullable = false)
-    private String servico;
+    @ManyToOne
+    private Servico servico;
 
     @Column(nullable = false)
     private String status; // "Pendente", "Confirmado"
@@ -81,11 +80,11 @@ public class Agendamento implements Serializable {
         return this.getPet().getDono().getNome();
     }
 
-    public String getServico() {
+    public Servico getServico() {
         return servico;
     }
 
-    public void setServico(String servico) {
+    public void setServico(Servico servico) {
         this.servico = servico;
     }
 

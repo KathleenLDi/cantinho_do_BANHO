@@ -325,12 +325,7 @@ function renderRetirada() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        await listarFuncionariosDoBanco(isAdm);
-
         carregarAgendaDoBanco(false);
-
-        carregarClientesDoBanco();
-
     } catch (e) {
         console.error('Erro na inicialização do sistema:', e);
     }
@@ -650,4 +645,194 @@ function aplicarMascaraMoeda(input) {
     v = v.replace('.', ','); // Troca o ponto da casa decimal por vírgula
     v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); // Coloca os pontos de milhar
     input.value = v;
+}
+
+// ═══════════════════════════════════════════════════
+// NOVOS PEDIDOS
+// ═══════════════════════════════════════════════════
+
+function renderNovos() {
+    const busca = (document.getElementById('busca-novos')?.value || '').toLowerCase();
+    const lista = novos.filter(a => (a.pet + a.dono + a.servico).toLowerCase().includes(busca));
+    const el = document.getElementById('lista-novos');
+    if (!el)
+        return;
+
+    if (!lista.length) {
+        el.innerHTML = `<div class="empty-state" style="padding: 30px; text-align: center; border-radius: 8px; border: 1px dashed #ccc;"><i class="fas fa-bell-slash" style="font-size: 2rem; color: #C9A96E; margin-bottom: 10px;"></i><p>Nenhum pedido novo no momento.</p></div>`;
+        return;
+    }
+
+    const clientesCadastrados = typeof listaClientes !== 'undefined' ? listaClientes : [];
+
+    // Lista de horários comerciais padrão para sugerir ao administrador
+    const horariosComerciais = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+
+    el.innerHTML = lista.map(a => {
+
+        // 🐛 1. CORREÇÃO DO BUG DE CADASTRO E PACOTE
+        const telContato = cleanTel(a.contato || '');
+        let cli = undefined;
+
+        // Só tenta encontrar o cliente se o telefone digitado tiver pelo menos 8 dígitos
+        if (telContato.length >= 8) {
+            cli = clientesCadastrados.find(c => cleanTel(c.telefone || '') === telContato);
+        }
+
+        // Só tem pacote se o ID existir, for diferente de zero e diferente da string "null"
+        const temPacote = cli && cli.pacoteId && String(cli.pacoteId) !== "0" && String(cli.pacoteId).toLowerCase() !== "null";
+
+        const linkWhats = a.contato
+                ? `<a href="https://wa.me/55${cleanTel(a.contato)}" target="_blank" onclick="event.stopPropagation()" style="color:#25d366; text-decoration: none; font-weight: 500;"><i class="fab fa-whatsapp"></i> ${a.contato}</a>`
+                : `<span style="opacity: 0.6;"><i class="fas fa-phone-slash"></i> Sem contato</span>`;
+
+
+        // 🟢 2. MÁGICA DA VALIDAÇÃO DE DISPONIBILIDADE
+        const horaPedida = (a.hora || '').substring(0, 5); // Ex: "14:00"
+
+        // Pega todas as horas já confirmadas na Agenda para o mesmo dia deste pedido
+        const ocupadosNoDia = agenda.filter(ag => ag.data === a.data).map(ag => (ag.hora || '').substring(0, 5));
+
+        // Verifica se a hora pedida está no meio das ocupadas
+        const isDisponivel = !ocupadosNoDia.includes(horaPedida);
+
+        // Acha sugestões livres (ignorando as ocupadas)
+        const livres = horariosComerciais.filter(h => !ocupadosNoDia.includes(h));
+
+        // Tenta sugerir horários DEPOIS da hora pedida. Se não tiver, sugere os primeiros da manhã.
+        let sugestoes = livres.filter(h => h > horaPedida).slice(0, 3);
+        if (sugestoes.length === 0)
+            sugestoes = livres.slice(0, 3);
+
+        // Constrói a caixinha visual de aviso
+        const boxDisponibilidade = isDisponivel
+                ? `<div style="margin-top: 12px; padding: 10px; border-radius: 6px; background: rgba(40,167,69,0.1); border-left: 3px solid #28a745; font-size: 0.85rem;">
+                   <strong style="color: #28a745;"><i class="fas fa-check-circle"></i> Horário Livre!</strong> <span style="opacity: 0.8;">Você pode aceitar o pedido.</span>
+               </div>`
+                : `<div style="margin-top: 12px; padding: 10px; border-radius: 6px; background: rgba(220,53,69,0.1); border-left: 3px solid #dc3545; font-size: 0.85rem;">
+                   <strong style="color: #dc3545;"><i class="fas fa-times-circle"></i> Horário Ocupado!</strong>
+                   <div style="margin-top: 4px; opacity: 0.8;">Sugestões livres neste dia: <strong>${sugestoes.length > 0 ? sugestoes.join(', ') : 'Dia totalmente lotado'}</strong></div>
+               </div>`;
+
+
+        // 🎨 3. DESENHO DO CARTÃO
+        return `
+        <div class="agenda-card cartao-expansivel" style="border-left: 5px solid ${isDisponivel ? '#17a2b8' : '#dc3545'}; padding: 20px; margin-bottom: 20px; transition: all 0.3s ease;">
+            
+            <div class="ac-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 700;">
+                        <i class="fas fa-paw" style="color:#17a2b8; margin-right: 6px;"></i> ${a.pet} <small style="opacity: 0.7; font-weight: normal; font-size: 0.9rem;">(${a.tipo || 'Pet'})</small>
+                    </h3>
+                    <div style="margin-top: 4px; font-size: 0.95rem; opacity: 0.85;">
+                        <i class="fas fa-user" style="color:#C9A96E; margin-right: 4px;"></i> ${a.dono} &nbsp;|&nbsp; ${linkWhats}
+                    </div>
+                </div>
+                <div style="text-align:right; display: flex; flex-direction: column; gap: 5px; align-items: flex-end;">
+                    <span class="badge" style="background-color: rgba(23, 162, 184, 0.15); color: #17a2b8; border: 1px solid #17a2b8; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: 600;"><i class="fas fa-star"></i> Novo Pedido</span>
+                    ${temPacote ? `<span class="badge" style="background-color: rgba(133, 100, 4, 0.15); color: #d39e00; border: 1px solid #ffeeba; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px;"><i class="fas fa-box-open"></i> Pacote Ativo</span>` : ''}
+                    ${cli ? `<span class="badge" style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid #c3e6cb; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px;"><i class="fas fa-address-book"></i> Cadastrado</span>` : ''}
+                </div>
+            </div>
+
+            <div style="border: 1px solid rgba(150, 150, 150, 0.2); padding: 12px 15px; border-radius: 6px; margin-bottom: 15px;">
+                <div style="margin-bottom: 8px; font-size: 1rem;">
+                    <strong>Serviço Solicitado:</strong> <span class="badge" style="background: #C9A96E; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: normal;">${a.servico}</span>
+                </div>
+                <div style="font-size: 0.9rem; margin-bottom: 5px;">
+                    <i class="far fa-calendar-alt" style="color:#17a2b8; margin-right: 5px;"></i> <strong>Data sugerida:</strong> ${fd(a.data)} às ${horaPedida}
+                </div>
+                
+                ${a.obs ? `<div style="font-size: 0.85rem; margin-top: 8px; border-left: 3px solid #C9A96E; padding-left: 8px; opacity: 0.8;"><em><i class="fas fa-info-circle" style="color:#C9A96E;"></i> ${a.obs}</em></div>` : ''}
+                ${temPacote ? `<div style="font-size: 0.8rem; color: #d39e00; margin-top: 8px; background: rgba(255, 243, 205, 0.1); border: 1px dashed #ffeeba; padding: 5px; border-radius: 4px;"><i class="fas fa-exclamation-triangle"></i> Cliente possui pacote. O serviço será descontado na conclusão.</div>` : ''}
+                
+                ${boxDisponibilidade}
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; border-top: 1px solid rgba(150, 150, 150, 0.2); padding-top: 15px;">
+                <button onclick="recusarPedido(${a.id}, this)" style="background: transparent; color: #dc3545; border: 1px solid #dc3545; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 53, 69, 0.1)';" onmouseout="this.style.background='transparent';">
+                    <i class="fas fa-clock"></i> Mover p/ Pendentes
+                </button>
+                
+                <button onclick="aceitarPedido(${a.id}, this, '${a.data}', '${a.hora}', '${a.pet}')" 
+                    ${!isDisponivel ? 'disabled' : ''} 
+                    style="background: ${isDisponivel ? '#28a745' : '#ccc'}; color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: ${isDisponivel ? 'pointer' : 'not-allowed'}; transition: all 0.2s;">
+                    <i class="fas fa-check"></i> Aceitar Pedido
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function aceitarPedido(id, btn, dataReal, horaReal, pet) {
+    const horarioOcupado = agenda.some(ag => ag.data === dataReal && ag.hora === horaReal);
+    const dataBR = fd(dataReal);
+
+    if (horarioOcupado) {
+        alert(`⚠️ Choque de Horários!\n\nJá existe um agendamento confirmado para o dia ${dataBR} às ${horaReal}.\n\nPor favor, clique em "Mover p/ Pendentes" para sugerir um novo horário ao cliente.`);
+        return; // O código morre aqui e não aceita o pedido!
+    }
+
+    if (!confirm(`Deseja CONFIRMAR o agendamento de ${pet} para o dia ${dataBR} às ${horaReal}?`))
+        return;
+
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A aceitar...';
+    btn.disabled = true;
+
+    try {
+        const params = new URLSearchParams();
+        params.append('id', id);
+        params.append('status', 'Confirmado');
+
+        const resposta = await fetch('../api/agendamentos/confirmar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+
+        if (resposta.ok) {
+            await carregarAgendaDoBanco(true);
+        } else {
+            throw new Error("Falha ao aceitar no servidor");
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro ao confirmar o agendamento.");
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
+}
+
+async function recusarPedido(id, btn) {
+    if (!confirm(`Deseja mover este pedido para a lista de Pendentes para negociação de horário?`))
+        return;
+
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A mover...';
+    btn.disabled = true;
+
+    try {
+        const params = new URLSearchParams();
+        params.append('id', id);
+        params.append('status', 'Pendente');
+
+        const resposta = await fetch('../api/agendamentos/confirmar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+
+        if (resposta.ok) {
+            // Recarrega o banco e o pedido vai para a aba de Pendentes!
+            await carregarAgendaDoBanco(true);
+        } else {
+            throw new Error("Falha ao atualizar no servidor");
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro ao mover o agendamento.");
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
 }

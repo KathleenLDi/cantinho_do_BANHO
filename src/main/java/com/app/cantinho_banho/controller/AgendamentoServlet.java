@@ -64,8 +64,8 @@ public class AgendamentoServlet extends HttpServlet {
             agendamento.setPet(pet);
             agendamento.setData(data);
             agendamento.setHora(hora);
-            agendamento.setServico(servico);
-            agendamento.setStatus("Pendente");
+            agendamento.setServico(null);
+            agendamento.setStatus("Novo");
 
             agendamentoDAO.salvarOuAtualizar(agendamento);
             

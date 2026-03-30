@@ -1148,3 +1148,31 @@ button:disabled:hover {
         transform: rotate(360deg);
     }
 }
+
+
+
+
+.cartao-expansivel:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+/* O poder do foco: Joga o cartão para o centro da tela! */
+.cartao-focado {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1.1) !important;
+    z-index: 999 !important;
+    width: 90% !important;
+    max-width: 500px !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+    cursor: default !important;
+}
+
+/* ================= MODAL DE ACESSO (CENTRALIZADO) ================= */
+#modal-acesso input[type="email"]:focus,
+#modal-acesso input[type="text"]:focus {
+    border-color: #C9A96E !important;
+    box-shadow: 0 0 5px rgba(201, 169, 110, 0.3) !important;
+}
