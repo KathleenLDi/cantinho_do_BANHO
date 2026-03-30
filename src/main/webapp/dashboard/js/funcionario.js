@@ -1,7 +1,7 @@
 let lista_funcionarios = [];
 let editFuncId = null;
 
-function carregarFuncionariosDoBanco() {
+function carregarFuncionariosDoBanco(isAdm = false) {
     const elLista = document.getElementById('lista-funcs-cad');
     const elPerf = document.getElementById('lista-performance');
 
@@ -17,19 +17,21 @@ function carregarFuncionariosDoBanco() {
         elLista.innerHTML = loadingHTML;
     if (elPerf)
         elPerf.innerHTML = loadingHTML;
-    // 2. INICIAR A BUSCA
-    fetch('../api/funcionarios/listar')
+
+    let urlDaApi = '../api/funcionarios/listar';
+
+    if (isAdm) {
+        urlDaApi = '../api/funcionarios/listar-adm';
+    }
+    fetch(urlDaApi)
             .then(response => {
                 if (!response.ok)
                     throw new Error("Erro ao buscar dados do servidor.");
                 return response.json();
             })
             .then(dadosRecebidos => {
-                // Pequeno delay artificial (opcional) para o usuário notar o capricho no loading
-                // setTimeout(() => { 
                 lista_funcionarios = dadosRecebidos;
-                renderFuncionarios(); // Isso automaticamente substitui o loading pelos cards
-                // }, 500);
+                renderFuncionarios();
             })
             .catch(error => {
                 console.error("Erro:", error);
@@ -317,7 +319,7 @@ function cadastrarUsuario(event) {
                     document.getElementById('modalInfoNovoFunc').classList.remove('hidden');
                 }
 
-                carregarFuncionariosDoBanco();
+                carregarFuncionariosDoBanco(false);
             })
             .catch(error => {
                 restaurarBotaoSalvar(btnSalvar, textoOriginalBotao);
@@ -325,13 +327,22 @@ function cadastrarUsuario(event) {
             });
 }
 
-// Local ainda
 async function excluirFunc(id) {
     if (!confirm('Tem certeza que deseja excluir este funcionário permanentemente? O acesso dele ao sistema será revogado.')) {
         return;
     }
 
     try {
+
+        const btnSalvar = document.querySelector('#modalFunc .btn-primary');
+        const textoOriginalBotao = btnSalvar.innerHTML;
+
+        // 2. Coloca o botão em estado de "Aguarde"
+        btnSalvar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Aguarde...';
+        btnSalvar.disabled = true;
+        btnSalvar.style.cursor = 'wait';
+        btnSalvar.style.opacity = '0.7';
+
         // 2. Prepara os dados para enviar ao Java (Formato formulário)
         const params = new URLSearchParams();
         params.append('id', id);
@@ -344,6 +355,7 @@ async function excluirFunc(id) {
         });
 
         if (resposta.ok) {
+            restaurarBotaoSalvar(btnSalvar, textoOriginalBotao);
             alert("Funcionário excluído com sucesso!");
 
             // 4. Recarrega a lista de funcionários do banco para atualizar a tela e os dropdowns

@@ -43,9 +43,11 @@ public class FuncionarioDAO {
         try {
             em.getTransaction().begin();
 
-            Funcionario funcionario = em.find(Funcionario.class, id);
-            if (funcionario != null) {
-                em.remove(funcionario);
+            Funcionario f = em.find(Funcionario.class, id);
+
+            if (f != null && f.getUsuario() != null) {
+                f.getUsuario().setAtivo(false);
+                em.merge(f);
             }
 
             em.getTransaction().commit();
@@ -86,11 +88,22 @@ public class FuncionarioDAO {
         }
     }
 
-    public List<Funcionario> buscarTodos() {
+    public List<Funcionario> buscarSomenteFuncionarios() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             // O JPQL entra na classe Funcionario (f), vai até a classe Usuario, e olha o perfil!
-            String jpql = "SELECT f FROM Funcionario f WHERE f.usuario.perfil NOT IN ('Admin', 'Administrador')";
+            String jpql = "SELECT f FROM Funcionario f WHERE f.usuario.perfil NOT IN ('Admin', 'Administrador') AND f.usuario.ativo = true";
+
+            return em.createQuery(jpql, Funcionario.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Funcionario> buscarTodos() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql = "SELECT f FROM Funcionario f";
 
             return em.createQuery(jpql, Funcionario.class).getResultList();
         } finally {

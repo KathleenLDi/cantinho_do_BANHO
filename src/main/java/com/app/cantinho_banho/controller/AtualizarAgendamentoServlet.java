@@ -56,7 +56,8 @@ public class AtualizarAgendamentoServlet extends HttpServlet {
                 } else {
                     a.setFuncionario(null);
                 }
-                dao.salvarOuAtualizar(a); // Salva no banco!
+                dao.salvarOuAtualizar(a);
+                com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
                 response.setStatus(HttpServletResponse.SC_OK);
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

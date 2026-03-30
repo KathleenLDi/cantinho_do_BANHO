@@ -11,7 +11,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 @Entity
 public class Cliente implements Serializable {
@@ -26,6 +28,10 @@ public class Cliente implements Serializable {
 
     @OneToMany(mappedBy = "dono")
     private List<Pet> pets;
+
+    @OneToOne
+    @JoinColumn(name = "usuario_id", nullable = true)
+    private Usuario usuario;
 
     public Cliente() {
     }
@@ -61,6 +67,14 @@ public class Cliente implements Serializable {
 
     public void setPets(List<Pet> pets) {
         this.pets = pets;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
 }

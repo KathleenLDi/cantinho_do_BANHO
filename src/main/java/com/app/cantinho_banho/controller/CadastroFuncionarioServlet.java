@@ -106,6 +106,8 @@ public class CadastroFuncionarioServlet extends HttpServlet {
             func.setUsuario(novoUsuario);
 
             funcDAO.salvar(func);
+            
+            com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
 
             response.setStatus(201);
             response.setContentType("application/json");

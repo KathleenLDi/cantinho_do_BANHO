@@ -24,6 +24,9 @@ public class ConcluirAgendamentoServlet extends HttpServlet {
                 a.setStatus(novoStatus);
 
                 dao.salvarOuAtualizar(a);
+                
+                com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
+                
                 response.setStatus(HttpServletResponse.SC_OK);
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

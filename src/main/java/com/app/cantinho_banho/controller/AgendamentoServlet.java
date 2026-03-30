@@ -68,6 +68,9 @@ public class AgendamentoServlet extends HttpServlet {
             agendamento.setStatus("Pendente");
 
             agendamentoDAO.salvarOuAtualizar(agendamento);
+            
+            com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
+            
             response.getWriter().write("Agendamento confirmado para: " + dataStr + " às " + horaStr);
         } catch (Exception e) {
             response.setStatus(500);

@@ -13,13 +13,13 @@ public class ExcluirAgendamentoServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            // Pega o ID enviado pelo JavaScript
             Long id = Long.parseLong(request.getParameter("id"));
 
             AgendamentoDAO dao = new AgendamentoDAO();
             
-            // Chama o método remover do seu DAO (que deve usar em.remove)
             dao.remover(id);
+            
+            com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
 
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (Exception e) {

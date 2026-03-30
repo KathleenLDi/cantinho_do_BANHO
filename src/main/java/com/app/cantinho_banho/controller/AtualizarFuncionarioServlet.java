@@ -122,6 +122,8 @@ public class AtualizarFuncionarioServlet extends HttpServlet {
             }
 
             dao.atualizar(f);
+            
+            com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
 
             response.setStatus(200);
             response.setContentType("application/json");

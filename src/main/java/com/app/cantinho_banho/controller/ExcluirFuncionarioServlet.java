@@ -13,7 +13,6 @@ public class ExcluirFuncionarioServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            // 1. Recebe o ID do funcionário enviado pelo JavaScript
             String idParam = request.getParameter("id");
 
             if (idParam == null || idParam.trim().isEmpty()) {
@@ -25,10 +24,10 @@ public class ExcluirFuncionarioServlet extends HttpServlet {
             Long id = Long.parseLong(idParam);
             FuncionarioDAO dao = new FuncionarioDAO();
 
-            // 2. Chama o método de excluir no DAO
             dao.remover(id);
 
-            // 3. Responde com sucesso
+            com.app.cantinho_banho.websocket.AtualizacaoWebSocket.notificarTodos();
+
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write("Funcionário excluído com sucesso.");
 

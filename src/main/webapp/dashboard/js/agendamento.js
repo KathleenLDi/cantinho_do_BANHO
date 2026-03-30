@@ -82,7 +82,7 @@ async function carregarAgendaDoBanco(silencioso = false) {
             a.status === 'Retirada' || a.status === 'retirada'
         );
 
-// Renderiza tudo (destrói e recria o HTML)
+        // Renderiza tudo (destrói e recria o HTML)
         if (typeof renderNovos === 'function')
             renderNovos();
         if (typeof renderAgenda === 'function')
@@ -130,7 +130,7 @@ async function carregarAgendaDoBanco(silencioso = false) {
 
 
 function renderAgenda() {
-    listarFuncionariosDoBanco();
+    listarFuncionariosDoBanco(isAdm);
     populateFuncSelects();
     const busca = (document.getElementById('busca-agenda')?.value || '').toLowerCase();
     const filData = document.getElementById('filtro-data-agenda')?.value || '';
@@ -310,17 +310,12 @@ function renderRetirada() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        await listarFuncionariosDoBanco();
+        await listarFuncionariosDoBanco(isAdm);
 
         carregarAgendaDoBanco(false);
 
-        setInterval(() => {
-            console.log("Buscando novos agendamentos em segundo plano...");
-            carregarAgendaDoBanco(true);
-        }, 5000);
-
-        // carregarClientesDoBanco();
-        listarFuncionariosDoBanco();
+        carregarClientesDoBanco();
+        listarFuncionariosDoBanco(isAdm);
 
     } catch (e) {
         console.error('Erro na inicialização do sistema:', e);
@@ -556,9 +551,15 @@ async function concluirAtendimento(id, btn) {
     }
 }
 
-async function listarFuncionariosDoBanco() {
+async function listarFuncionariosDoBanco(isAdm = false) {
     try {
-        const resposta = await fetch('../api/funcionarios/listar');
+        let urlDaApi = '../api/funcionarios/listar';
+
+        if (isAdm) {
+            urlDaApi = '../api/funcionarios/listar-adm';
+        }
+
+        const resposta = await fetch(urlDaApi);
 
         if (!resposta.ok) {
             throw new Error("Erro ao buscar funcionários do banco");
@@ -572,7 +573,7 @@ async function listarFuncionariosDoBanco() {
 
     } catch (erro) {
         console.error("Erro ao carregar funcionários:", erro);
-    }
+}
 }
 
 async function finalizarRetirada(id, btn) {

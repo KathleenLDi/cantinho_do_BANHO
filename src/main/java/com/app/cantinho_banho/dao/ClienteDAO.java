@@ -51,7 +51,6 @@ public class ClienteDAO {
 
     public List<Cliente> listarTodos() {
         EntityManager em = JPAUtil.getEntityManager();
-        // JPQL: Uma linguagem de consulta parecida com SQL, mas focada em Objetos
         return em.createQuery("FROM Cliente", Cliente.class).getResultList();
     }
     
