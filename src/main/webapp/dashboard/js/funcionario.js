@@ -359,7 +359,7 @@ async function excluirFunc(id) {
             alert("Funcionário excluído com sucesso!");
 
             // 4. Recarrega a lista de funcionários do banco para atualizar a tela e os dropdowns
-            await carregarFuncionariosDoBanco();
+            await carregarFuncionariosDoBanco(isAdm);
 
         } else {
             const msgErro = await resposta.text();
@@ -449,7 +449,7 @@ function aplicarEstiloValidacao(elemento, v) {
 }
 
 document.querySelector('[data-page="funcionarios"]').addEventListener('click', () => {
-    carregarFuncionariosDoBanco();
+    carregarFuncionariosDoBanco(isAdm);
 });
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -92,7 +92,9 @@ async function carregarAgendaDoBanco(silencioso = false) {
         if (typeof renderRetirada === 'function')
             renderRetirada();
 
-        atualizarBadges();
+        if (typeof atualizarBadges === 'function') {
+            atualizarBadges();
+        }
 
         if (idFocado) {
             const elementoParaFocar = document.getElementById(idFocado);
@@ -123,15 +125,17 @@ async function carregarAgendaDoBanco(silencioso = false) {
             iconeSync.style.color = '#ff0000';
             // Repare que NÃO removemos o 'fa-spin' aqui. Ele vai girar pra sempre!
         }
-        if (el)
-            el.innerHTML = `<p style="color:red;text-align:center">Erro ao conectar com o banco de dados.</p>`;
+        if (el) {
+            // 🟢 AGORA A TELA VAI MOSTRAR O VERDADEIRO MOTIVO DO ERRO!
+            el.innerHTML = `<p style="color:red; text-align:center; font-weight:bold; font-size: 1.1rem; padding: 20px;">
+                🚨 ERRO NO JS: ${erro.message}
+            </p>`;
+        }
 }
 }
 
 
 function renderAgenda() {
-    listarFuncionariosDoBanco(isAdm);
-    populateFuncSelects();
     const busca = (document.getElementById('busca-agenda')?.value || '').toLowerCase();
     const filData = document.getElementById('filtro-data-agenda')?.value || '';
     const filFunc = document.getElementById('filtro-func-agenda')?.value || '';
@@ -145,7 +149,8 @@ function renderAgenda() {
         el.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-check" style="color:#5ac75a"></i><p>Nenhum agendamento confirmado</p></div>`;
         return;
     }
-    const funcOpts = `<option value="">— Selecionar —</option>` + funcionarios.map(f => `<option>${f.nome}</option>`).join('');
+    const listaFuncs = (typeof funcionarios !== 'undefined' && Array.isArray(funcionarios)) ? funcionarios : [];
+    const funcOpts = `<option value="">— Selecionar —</option>` + listaFuncs.map(f => `<option>${f.nome}</option>`).join('');
     el.innerHTML = lista.map(a => `
             <div class="agenda-card">
               <div class="ac-header">
@@ -160,36 +165,46 @@ function renderAgenda() {
               </div>
               <div style="margin-bottom:10px"><span class="badge badge-amarelo">${a.servico}</span></div>
               <div class="ac-grid">
+                
                 <div class="ag-field"><label>Funcionário</label>
-                  <select onchange="saveCampo(${a.id},'funcionario',this.value,'agenda')">${funcOpts.replace(`>${a.funcionario}<`, ` selected>${a.funcionario}<`)}</select>
+                  <select>${funcOpts.replace(`>${a.funcionario}<`, ` selected>${a.funcionario}<`)}</select>
                 </div>
+                
                 <div class="ag-field"><label>Valor Cobrado (R$)</label>
                     <input type="text" value="${formatarValorTela(a.valor)}" placeholder="0,00" oninput="aplicarMascaraMoeda(this)"/>
                 </div>
+                
                 <div class="ag-field"><label>Forma de Pagamento</label>
-                  <select onchange="saveCampo(${a.id},'formaPag',this.value,'agenda')">
+                  <select>
                     <option value="" ${!a.formaPag ? 'selected' : ''}>— Selecionar —</option>
                     ${['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito'].map(p => `<option ${a.formaPag === p ? 'selected' : ''}>${p}</option>`).join('')}
                   </select>
                 </div>
+                
                 <div class="ag-field"><label>Status Pagamento</label>
-                  <select onchange="saveCampo(${a.id},'statusPag',this.value,'agenda')">
+                  <select>
                     <option ${(a.status_pagamento || 'Pendente') === 'Pendente' ? 'selected' : ''}>Pendente</option>
                     <option ${a.status_pagamento === 'Pago' ? 'selected' : ''}>Pago</option>
                   </select>
                 </div>
+                
                 <div class="ag-field"><label>Entrada do Pet</label>
-                  <input type="time" value="${a.entrada_pet || ''}" onchange="saveCampo(${a.id},'entrada_pet',this.value,'agenda')"/>
+                  <input type="time" value="${a.entrada_pet || ''}" />
                 </div>
+                
                 <div class="ag-field"><label>Saída do Pet</label>
-                  <input type="time" value="${a.saida_pet || ''}" onchange="saveCampo(${a.id},'saida_pet',this.value,'agenda')"/>
+                  <input type="time" value="${a.saida_pet || ''}" />
                 </div>
+                
               </div>
+              
               <div class="ac-obs" style="margin-bottom:10px">
                 <label>Observações Internas</label>
-                <textarea rows="2" placeholder="Notas, produtos..." onchange="saveCampo(${a.id},'obs',this.value,'agenda')">${a.obs || ''}</textarea>
+                <textarea rows="2" placeholder="Notas, produtos...">${a.obs || ''}</textarea>
               </div>
+              
               ${a.obs ? `<div style="font-size:.78rem;color:#888;margin-bottom:10px"><i class="fas fa-sticky-note" style="color:#C9A96E;margin-right:5px"></i>${a.obs}</div>` : ''}
+              
               <div class="ac-footer">
                 <button class="btn-save-agenda" onclick="salvarAgendaManual(${a.id},this)"><i class="fas fa-save"></i> Salvar</button>
                 <button class="btn-concluir" onclick="concluirAtendimento(${a.id}, this)"><i class="fas fa-check-double"></i> Serviço Concluído</button>
@@ -315,7 +330,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         carregarAgendaDoBanco(false);
 
         carregarClientesDoBanco();
-        listarFuncionariosDoBanco(isAdm);
 
     } catch (e) {
         console.error('Erro na inicialização do sistema:', e);

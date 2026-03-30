@@ -48,7 +48,7 @@ public class ListarAgendamentosServlet extends HttpServlet {
 
             json.append("\"entrada_pet\":\"").append(a.getEntrada_pet() != null ? a.getEntrada_pet().toString() : "").append("\",");
             json.append("\"saida_pet\":\"").append(a.getSaida_pet() != null ? a.getSaida_pet().toString() : "").append("\",");
-            json.append("\"obs\":\"").append(a.getObs() != null ? a.getObs().toString() : "").append("\"");
+            json.append("\"obs\":\"").append(escapeJson(a.getObs())).append("\"");
             json.append("}");
 
             if (i < lista.size() - 1) {

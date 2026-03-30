@@ -1332,9 +1332,9 @@
             // ═══════════════════════════════════════════════════
             const logado = sessionStorage.getItem('nomeUsuario');
             const perfil = sessionStorage.getItem('perfilUsuario');
-            
+
             let isAdm = false;
-            if(perfil === 'Admin'){
+            if (perfil === 'Admin') {
                 isAdm = true;
             }
 
@@ -1475,15 +1475,41 @@
             // BADGES & HELPERS
             // ═══════════════════════════════════════════════════
             function atualizarBadges() {
-                const bn = document.getElementById('badge-novos'), bp = document.getElementById('badge-pend');
-                novos.length > 0 ? (bn.textContent = novos.length, bn.classList.add('show')) : bn.classList.remove('show');
-                pendentes.length > 0 ? (bp.textContent = pendentes.length, bp.classList.add('show')) : bp.classList.remove('show');
+                const bn = document.getElementById('badge-novos');
+                const bp = document.getElementById('badge-pend');
+
+                // Só atualiza o badge de 'novos' se ele existir no HTML
+                if (bn) {
+                    if (novos.length > 0) {
+                        bn.textContent = novos.length;
+                        bn.classList.add('show');
+                    } else {
+                        bn.classList.remove('show');
+                    }
+                }
+
+                // Só atualiza o badge de 'pendentes' se ele existir no HTML
+                if (bp) {
+                    if (pendentes.length > 0) {
+                        bp.textContent = pendentes.length;
+                        bp.classList.add('show');
+                    } else {
+                        bp.classList.remove('show');
+                    }
+                }
             }
-            function fd(d) {
-                return d ? d.split('-').reverse().join('/') : '—';
+            function fd(data) {
+                if (!data)
+                    return '';
+                const partes = data.split('-');
+                if (partes.length !== 3)
+                    return data;
+                return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
-            function cleanTel(t) {
-                return t ? (t.replace(/\D/g, '')) : ''
+            function cleanTel(tel) {
+                if (!tel)
+                    return '';
+                return tel.replace(/\D/g, ''); // Remove tudo o que não for número
             }
             function openWA(tel, msg) {
                 const n = cleanTel(tel);
@@ -2087,20 +2113,6 @@
                 renderNovos();
                 renderDashboard();
             }
-
-            // ═══════════════════════════════════════════════════
-            // AGENDA CONFIRMADA
-            // ═══════════════════════════════════════════════════
-
-            function saveCampo(id, campo, valor, lista) {
-                const arr = lista === 'agenda' ? agenda : historico;
-                const idx = arr.findIndex(x => x.id === id);
-                if (idx === -1)
-                    return;
-                arr[idx][campo] = valor;
-                salvarTudo();
-            }
-
             // ═══════════════════════════════════════════════════
             // CLIENTES CADASTRADOS
             // ═══════════════════════════════════════════════════
